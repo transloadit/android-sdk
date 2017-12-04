@@ -1,21 +1,35 @@
 package com.transloadit.android_sdk;
 
-import android.app.Activity;
-
-import com.transloadit.sdk.Assembly;
-
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Created by ifedapo on 13/11/2017.
- */
 
 public class Transloadit extends com.transloadit.sdk.Transloadit {
     public Transloadit(String key, @Nullable String secret, long duration, String hostUrl) {
         super(key, secret, duration, hostUrl);
     }
 
-    public Assembly newAssembly(Activity activity) {
-        return new ActivityAssembly(this, activity);
+    /**
+     * A new instance to transloadit client
+     *
+     * @param key User's transloadit key
+     * @param secret User's transloadit secret.
+     * @param hostUrl the host url to the transloadit service.
+     */
+    public Transloadit(String key, String secret, String hostUrl) {
+        this(key, secret, 5 * 60, hostUrl);
+    }
+
+    /**
+     * A new instance to transloadit client
+     *
+     * @param key User's transloadit key
+     * @param secret User's transloadit secret.
+     */
+    public Transloadit(String key, String secret) {
+        this(key, secret, 5 * 60, DEFAULT_HOST_URL);
+    }
+
+    public ActivityAssembly newAssembly(AssemblyProgressListener listener) {
+        return new ActivityAssembly(this, listener);
     }
 }
