@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           
-    package="com.transloadit.android_sdk"
+    package="com.transloadit.sdk"
     >
 
     <application android:allowBackup="true"

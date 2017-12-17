@@ -1,4 +1,4 @@
-package com.transloadit.android_sdk;
+package com.transloadit.android.sdk;
 
 import android.os.AsyncTask;
 
@@ -14,9 +14,9 @@ public class UploadTask extends AsyncTask<Void, Long, Void> {
     private Exception exception;
     private TusClient client;
     private TusUpload upload;
-    private ActivityAssembly assembly;
+    private Assembly assembly;
 
-    public UploadTask(ActivityAssembly assembly, TusClient client, TusUpload upload) {
+    public UploadTask(Assembly assembly, TusClient client, TusUpload upload) {
         this.assembly = assembly;
         this.client = client;
         this.upload = upload;
@@ -27,7 +27,7 @@ public class UploadTask extends AsyncTask<Void, Long, Void> {
         long uploadedBytes = updates[0];
         long totalBytes = updates[1];
 
-        assembly.listener.getProgressBar().setProgress((int) ((double) uploadedBytes / totalBytes * 100));
+        assembly.getListener().getProgressBar().setProgress((int) ((double) uploadedBytes / totalBytes * 100));
     }
 
     @Override
@@ -48,9 +48,6 @@ public class UploadTask extends AsyncTask<Void, Long, Void> {
             TusUploader uploader = client.resumeOrCreateUpload(upload);
             long uploadedBytes;
             long totalBytes = upload.getSize();
-
-            uploader.setChunkSize(5 * 1024 *1024); // 5MB
-            uploader.setRequestPayloadSize(5 * 1024 * 1024); // 5MB
 
             while (!isCancelled() && uploader.uploadChunk() > 0) {
                 uploadedBytes = uploader.getOffset();

@@ -1,13 +1,11 @@
-package com.transloadit.android_sdk;
+package com.transloadit.android.sdk;
 
 import android.content.SharedPreferences;
 import android.net.Uri;
 
-import com.transloadit.sdk.Assembly;
 import com.transloadit.sdk.response.AssemblyResponse;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,23 +14,23 @@ import java.util.Map;
 import io.tus.android.client.TusAndroidUpload;
 import io.tus.android.client.TusPreferencesURLStore;
 import io.tus.java.client.ProtocolException;
-import io.tus.java.client.TusClient;
 import io.tus.java.client.TusUpload;
 
 
-public class ActivityAssembly extends Assembly {
-    AssemblyProgressListener listener;
-    Map<String, Uri> fileUris;
-    List<UploadTask> uploadTasks;
-    Transloadit transloadit;
-    AssemblyStatusUpdateTask statusUpdateTask;
-    String preferenceName;
-    String url;
+public class Assembly extends com.transloadit.sdk.Assembly {
+    protected Transloadit transloadit;
+    protected  Map<String, Uri> fileUris;
+
+    private AssemblyProgressListener listener;
+    private List<UploadTask> uploadTasks;
+    private AssemblyStatusUpdateTask statusUpdateTask;
+    private String preferenceName;
+    private String url;
 
     public static final String DEFAULT_PREFERENCE_NAME = "tansloadit_android_sdk_urls";
 
 
-    public ActivityAssembly(Transloadit transloadit, AssemblyProgressListener listener) {
+    public Assembly(Transloadit transloadit, AssemblyProgressListener listener) {
         super(transloadit);
         this.transloadit = transloadit;
         this.listener = listener;
@@ -53,6 +51,14 @@ public class ActivityAssembly extends Assembly {
 
     public void setPreferenceName(String name) {
         preferenceName = name;
+    }
+
+    AssemblyProgressListener getListener() {
+        return listener;
+    }
+
+    String getUrl() {
+        return url;
     }
 
     public void addFile(String name, Uri fileUri) {
@@ -88,17 +94,20 @@ public class ActivityAssembly extends Assembly {
 
     @Override
     protected void processTusFiles(String assemblyUrl) throws IOException, ProtocolException {
+        setUpTusClient();
         url = assemblyUrl;
-        tusClient = new TusClient();
         uploadTasks = new ArrayList<UploadTask>();
-
-        SharedPreferences pref = listener.getActivity().getSharedPreferences(preferenceName, 0);
-        tusClient.setUploadCreationURL(new URL(getClient().getHostUrl() + "/resumable/files/"));
-        tusClient.enableResuming(new TusPreferencesURLStore(pref));
 
         for (Map.Entry<String, Uri> entry : fileUris.entrySet()) {
             processTusFile(entry.getValue(), entry.getKey(), assemblyUrl);
         }
+    }
+
+    @Override
+    protected void setUpTusClient() throws IOException {
+        super.setUpTusClient();
+        SharedPreferences pref = listener.getActivity().getSharedPreferences(preferenceName, 0);
+        tusClient.enableResuming(new TusPreferencesURLStore(pref));
     }
 
     protected void processTusFile(Uri fileUri, String fieldName, String assemblyUrl)

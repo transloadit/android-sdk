@@ -1,4 +1,4 @@
-package com.transloadit.android_sdk;
+package com.transloadit.android.sdk;
 
 import android.os.AsyncTask;
 
@@ -11,10 +11,10 @@ import com.transloadit.sdk.response.AssemblyResponse;
  */
 
 public class AssemblyStatusUpdateTask extends AsyncTask<Void, Void, AssemblyResponse> {
-    private ActivityAssembly assembly;
+    private Assembly assembly;
     private Exception exception;
 
-    public AssemblyStatusUpdateTask(ActivityAssembly assembly) {
+    public AssemblyStatusUpdateTask(Assembly assembly) {
         this.assembly = assembly;
     }
 
@@ -35,10 +35,11 @@ public class AssemblyStatusUpdateTask extends AsyncTask<Void, Void, AssemblyResp
         try {
             AssemblyResponse response;
             do {
-                response = assembly.getClient().getAssemblyByUrl(assembly.url);
+                response = assembly.getClient().getAssemblyByUrl(assembly.getUrl());
+                Thread.sleep(1000);
             } while (!response.isFinished());
             return response;
-        } catch (RequestException | LocalOperationException e) {
+        } catch (RequestException | LocalOperationException | InterruptedException e) {
             cancel(true);
         }
 

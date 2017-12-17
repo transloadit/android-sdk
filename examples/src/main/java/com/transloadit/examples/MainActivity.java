@@ -16,9 +16,9 @@ import android.widget.TextView;
 
 import io.tus.java.client.ProtocolException;
 
-import com.transloadit.android_sdk.ActivityAssembly;
-import com.transloadit.android_sdk.AssemblyProgressListener;
-import com.transloadit.android_sdk.Transloadit;
+import com.transloadit.android.sdk.Assembly;
+import com.transloadit.android.sdk.AssemblyProgressListener;
+import com.transloadit.android.sdk.Transloadit;
 import com.transloadit.sdk.exceptions.LocalOperationException;
 import com.transloadit.sdk.exceptions.RequestException;
 import com.transloadit.sdk.response.AssemblyResponse;
@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity implements AssemblyProgressL
     private Button resumeButton;
     private ProgressBar progressBar;
     private Transloadit transloadit;
-    private ActivityAssembly assembly;
+    private Assembly assembly;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -1,4 +1,4 @@
-package com.transloadit.android_sdk;
+package com.transloadit.android.sdk;
 
 import android.app.Activity;
 import android.widget.ProgressBar;
