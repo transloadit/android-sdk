@@ -5,6 +5,7 @@ import android.net.Uri;
 
 import com.transloadit.sdk.response.AssemblyResponse;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,7 +47,7 @@ public class Assembly extends com.transloadit.sdk.Assembly {
 
     @Override
     public int getFilesCount() {
-        return fileUris.size();
+        return fileUris.size() + files.size();
     }
 
     public void setPreferenceName(String name) {
@@ -101,6 +102,10 @@ public class Assembly extends com.transloadit.sdk.Assembly {
         for (Map.Entry<String, Uri> entry : fileUris.entrySet()) {
             processTusFile(entry.getValue(), entry.getKey(), assemblyUrl);
         }
+
+        for (Map.Entry<String, File> entry : files.entrySet()) {
+            processTusFile(entry.getValue(), entry.getKey(), assemblyUrl);
+        }
     }
 
     @Override
@@ -110,11 +115,26 @@ public class Assembly extends com.transloadit.sdk.Assembly {
         tusClient.enableResuming(new TusPreferencesURLStore(pref));
     }
 
+    @Override
+    protected void processTusFile(File file, String fieldName, String assemblyUrl)
+            throws IOException, ProtocolException {
+
+        final TusUpload upload = new TusUpload(file);
+        Map<String, String> metadata = upload.getMetadata();
+        metadata.put("filename", file.getName());
+        upload.setMetadata(metadata);
+
+        finishTusFileProcess(upload, fieldName, assemblyUrl);
+    }
+
     protected void processTusFile(Uri fileUri, String fieldName, String assemblyUrl)
             throws IOException, ProtocolException {
 
         final TusUpload upload = new TusAndroidUpload(fileUri, listener.getActivity());
+        finishTusFileProcess(upload, fieldName, assemblyUrl);
+    }
 
+    private void finishTusFileProcess(TusUpload upload, String fieldName, String assemblyUrl) {
         Map<String, String> metadata = upload.getMetadata();
         metadata.put("assembly_url", assemblyUrl);
         metadata.put("fieldname", fieldName);

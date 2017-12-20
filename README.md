@@ -42,28 +42,29 @@ interface.
 ```java
 
 public class MyAssemblyProgressListener  implements AssemblyProgressListener {
+    
     @Override
     public void onUploadFinished() {
-        setStatus("You Assembly Upload is done and it's now executing");
+        System.out.println("You Assembly Upload is done and it's now executing");
     }
 
     @Override
     public void onAssemblyFinished(AssemblyResponse response) {
         try {
-            setStatus("Your Assembly is done executing with status: " + response.json().getString("ok"));
+            System.out.println("Your Assembly is done executing with status: " + response.json().getString("ok"));
         } catch (JSONException e) {
-            showError(e);
+            e.printStackTrace();
         }
     }
 
     @Override
     public void onUploadFailed(Exception exception) {
-        showError(exception);
+        System.out.print("Assmebly file upload failed with error: " + exception.getMessage());
     }
 
     @Override
     public void onAssemblyStatusUpdateFailed(Exception exception) {
-        showError(exception);
+        System.out.print("Assmebly status update failed with error: " + exception.getMessage());
     }
 
     @Override
