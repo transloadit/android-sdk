@@ -1,6 +1,7 @@
 package com.transloadit.android.sdk;
 
 import android.os.AsyncTask;
+import android.widget.ProgressBar;
 
 import java.io.IOException;
 
@@ -27,7 +28,10 @@ public class UploadTask extends AsyncTask<Void, Long, Void> {
         long uploadedBytes = updates[0];
         long totalBytes = updates[1];
 
-        assembly.getListener().getProgressBar().setProgress((int) ((double) uploadedBytes / totalBytes * 100));
+        ProgressBar progressBar = assembly.getListener().getProgressBar();
+        if (progressBar != null) {
+            progressBar.setProgress((int) ((double) uploadedBytes / totalBytes * 100));
+        }
     }
 
     @Override

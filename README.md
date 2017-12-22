@@ -42,6 +42,13 @@ interface.
 ```java
 
 public class MyAssemblyProgressListener  implements AssemblyProgressListener {
+    private Activity activity;
+    private ProgressBar progressBar;
+    
+    public MyAssemblyProgressListener(Activity activity, ProgressBar progressBar) {
+        this.activity = activity;
+        this.progressBar = progressBar;
+    }
     
     @Override
     public void onUploadFinished() {
@@ -74,8 +81,38 @@ public class MyAssemblyProgressListener  implements AssemblyProgressListener {
 
     @Override
     public Activity getActivity() {
-        return this;
+        return activity;
     }
 }
     
+```
+
+And in your activity you can have something like this
+
+```
+public class MainActivity extends AppCompatActivity implements AssemblyProgressListener {
+    private ProgressBar progressBar;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        
+        AssemblyProgressListener listener = new MyAssemblyProgressListener(this, progressBar);
+
+        Transloadit transloadit = new Transloadit("key", "secret");
+        Assembly assembly = transloadit.newAssembly(listener);
+        assembly.addFile("file", new File("path/to/file.jpg"));
+        
+        Map<String, Object> stepOptions = new HashMap<>();
+        stepOptions.put("width", 75);
+        stepOptions.put("height", 75);
+        stepOptions.put("resize_strategy", "pad");
+        assembly.addStep("resize", "/image/resize", stepOptions);
+
+        assembly.save();
+    }
+
 ```
