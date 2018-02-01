@@ -1,5 +1,9 @@
 package com.transloadit.android.sdk;
 
+import android.app.Activity;
+
+import com.transloadit.sdk.AssemblyProgressListener;
+
 import org.jetbrains.annotations.Nullable;
 
 
@@ -29,7 +33,7 @@ public class Transloadit extends com.transloadit.sdk.Transloadit {
         this(key, secret, 5 * 60, DEFAULT_HOST_URL);
     }
 
-    public Assembly newAssembly(AssemblyProgressListener listener) {
-        return new Assembly(this, listener);
+    public AndroidAsyncAssembly newAssembly(AssemblyProgressListener listener, Activity activity) {
+        return new AndroidAsyncAssembly(this, listener, activity);
     }
 }

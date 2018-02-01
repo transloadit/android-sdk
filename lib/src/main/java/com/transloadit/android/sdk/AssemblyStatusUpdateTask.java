@@ -2,47 +2,45 @@ package com.transloadit.android.sdk;
 
 import android.os.AsyncTask;
 
-import com.transloadit.sdk.exceptions.LocalOperationException;
-import com.transloadit.sdk.exceptions.RequestException;
 import com.transloadit.sdk.response.AssemblyResponse;
 
-/**
- * Created by ifedapo on 02/12/2017.
- */
+import java.util.concurrent.Callable;
 
 public class AssemblyStatusUpdateTask extends AsyncTask<Void, Void, AssemblyResponse> {
-    private Assembly assembly;
+    private AndroidAsyncAssembly assembly;
     private Exception exception;
+    private Callable<AssemblyResponse> callable;
 
-    public AssemblyStatusUpdateTask(Assembly assembly) {
+    public AssemblyStatusUpdateTask(AndroidAsyncAssembly assembly, Callable<AssemblyResponse> callable) {
         this.assembly = assembly;
+        this.callable = callable;
     }
 
     @Override
     protected void onPostExecute(AssemblyResponse response) {
-        assembly.onFinished(response);
+        assembly.getListener().onAssemblyFinished(response);
     }
 
     @Override
     protected void onCancelled() {
         if (exception != null) {
-            assembly.onStatusUpdateFailed(exception);
+            assembly.getListener().onAssemblyStatusUpdateFailed(exception);
         }
     }
 
     @Override
     protected AssemblyResponse doInBackground(Void... params) {
         try {
-            AssemblyResponse response;
-            do {
-                response = assembly.getClient().getAssemblyByUrl(assembly.getUrl());
-                Thread.sleep(1000);
-            } while (!response.isFinished());
-            return response;
-        } catch (RequestException | LocalOperationException | InterruptedException e) {
-            cancel(true);
+            return callable.call();
+        } catch (Exception e) {
+            setError(e);
+            cancel(false);
         }
 
         return null;
+    }
+
+    void setError(Exception exception) {
+        this.exception = exception;
     }
 }
