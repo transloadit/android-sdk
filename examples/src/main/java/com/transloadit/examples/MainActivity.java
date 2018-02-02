@@ -1,6 +1,5 @@
 package com.transloadit.examples;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
@@ -14,18 +13,16 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import io.tus.java.client.ProtocolException;
-
-import com.transloadit.android.sdk.Assembly;
-import com.transloadit.android.sdk.AssemblyProgressListener;
+import com.transloadit.android.sdk.AndroidAsyncAssembly;
 import com.transloadit.android.sdk.Transloadit;
+import com.transloadit.sdk.async.AssemblyProgressListener;
 import com.transloadit.sdk.exceptions.LocalOperationException;
 import com.transloadit.sdk.exceptions.RequestException;
 import com.transloadit.sdk.response.AssemblyResponse;
 
 import org.json.JSONException;
 
-import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,7 +34,7 @@ public class MainActivity extends AppCompatActivity implements AssemblyProgressL
     private Button resumeButton;
     private ProgressBar progressBar;
     private Transloadit transloadit;
-    private Assembly assembly;
+    private AndroidAsyncAssembly androidAsyncAssembly;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,7 +42,7 @@ public class MainActivity extends AppCompatActivity implements AssemblyProgressL
         setContentView(R.layout.activity_main);
 
         transloadit = new Transloadit("key", "secret");
-        assembly = transloadit.newAssembly(this);
+        androidAsyncAssembly = transloadit.newAssembly(this, this);
 
         status = (TextView) findViewById(R.id.status);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
@@ -80,12 +77,17 @@ public class MainActivity extends AppCompatActivity implements AssemblyProgressL
     }
 
     private void submitAssembly(Uri uri) {
-        assembly.addFile("file", uri);
+        try {
+            androidAsyncAssembly.addFile(getContentResolver().openInputStream(uri), "file");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            showError(e);
+        }
         Map<String, Object> stepOptions = new HashMap<>();
         stepOptions.put("width", 75);
         stepOptions.put("height", 75);
         stepOptions.put("resize_strategy", "pad");
-        assembly.addStep("resize", "/image/resize", stepOptions);
+        androidAsyncAssembly.addStep("resize", "/image/resize", stepOptions);
 
         SaveTask saveTask = new SaveTask(this);
         saveTask.execute(true);
@@ -97,30 +99,33 @@ public class MainActivity extends AppCompatActivity implements AssemblyProgressL
     }
 
     public void pauseUpload() {
-        assembly.pauseUpload();
+        try {
+            androidAsyncAssembly.pauseUpload();
+        } catch (LocalOperationException e) {
+            showError(e);
+        }
         setPauseButtonEnabled(false);
     }
 
     public void resumeUpload() {
         try {
-            assembly.resumeUpload();
-            setPauseButtonEnabled(true);
-        } catch (IOException e) {
-            showError(e);
-        } catch (ProtocolException e) {
+            androidAsyncAssembly.resumeUpload();
+        } catch (LocalOperationException e) {
             showError(e);
         }
+        setPauseButtonEnabled(true);
     }
 
     @Override
     public void onUploadFinished() {
-        setStatus("You Assembly Upload is done and it's now executing");
+        setStatus("You AndroidAsyncAssembly Upload is done and it's now executing");
+        pauseButton.setEnabled(false);
     }
 
     @Override
     public void onAssemblyFinished(AssemblyResponse response) {
         try {
-            setStatus("Your Assembly is done executing with status: " + response.json().getString("ok"));
+            setStatus("Your AndroidAsyncAssembly is done executing with status: " + response.json().getString("ok"));
         } catch (JSONException e) {
             showError(e);
         }
@@ -137,21 +142,12 @@ public class MainActivity extends AppCompatActivity implements AssemblyProgressL
     }
 
     @Override
-    public ProgressBar getProgressBar() {
-        return progressBar;
-    }
-
-    @Override
-    public Activity getActivity() {
-        return this;
+    public void onUploadPogress(long uploadedBytes, long totalBytes) {
+        progressBar.setProgress((int) ((double) uploadedBytes / totalBytes * 100));
     }
 
     private void setStatus(String text) {
         status.setText(text);
-    }
-
-    private void setUploadProgress(int progress) {
-        progressBar.setProgress(progress);
     }
 
     private void showError(Exception e) {
@@ -206,17 +202,18 @@ public class MainActivity extends AppCompatActivity implements AssemblyProgressL
 
         @Override
         protected void onPostExecute(AssemblyResponse response) {
-            activity.setStatus("Your assembly is running on " + response.getUrl());
+            activity.setStatus("Your androidAsyncAssembly is running on " + response.getUrl());
             activity.setPauseButtonEnabled(true);
         }
 
         @Override
         protected AssemblyResponse doInBackground(Boolean... params) {
             try {
-                return assembly.save(params[0]);
+                return androidAsyncAssembly.save(params[0]);
             } catch (LocalOperationException e) {
                 showError(e);
             } catch (RequestException e) {
+                e.printStackTrace();
                 showError(e);
             }
 
