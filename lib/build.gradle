@@ -25,7 +25,7 @@ dependencies {
     })
     compile 'com.android.support:appcompat-v7:24.2.1'
 //    compile 'com.transloadit.sdk:transloadit:0.0.3'
-    compile 'com.github.transloadit:java-sdk:344d83f07e476aaf15f5c1bc4d539e175d1f32b9'
+    compile 'com.github.transloadit:java-sdk:f0239f0b5d4a7ead77d465c91082489b44a21fe2'
     compile 'io.tus.android.client:tus-android-client:0.1.5'
     testCompile 'junit:junit:4.12'
 }

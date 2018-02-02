@@ -2,7 +2,7 @@ package com.transloadit.android.sdk;
 
 import android.app.Activity;
 
-import com.transloadit.sdk.AssemblyProgressListener;
+import com.transloadit.sdk.async.AssemblyProgressListener;
 
 import org.jetbrains.annotations.Nullable;
 

@@ -4,8 +4,8 @@ import android.app.Activity;
 import android.content.SharedPreferences;
 import android.net.Uri;
 
-import com.transloadit.sdk.AssemblyProgressListener;
-import com.transloadit.sdk.AsyncAssembly;
+import com.transloadit.sdk.async.AssemblyProgressListener;
+import com.transloadit.sdk.async.AsyncAssembly;
 import com.transloadit.sdk.exceptions.LocalOperationException;
 import com.transloadit.sdk.exceptions.RequestException;
 import com.transloadit.sdk.response.AssemblyResponse;
@@ -36,6 +36,10 @@ public class AndroidAsyncAssembly extends AsyncAssembly {
         this.activity = activity;
     }
 
+    /**
+     *
+     * @param name set the storage preference name
+     */
     public void setPreferenceName(String name) {
         preferenceName = name;
     }
@@ -52,12 +56,12 @@ public class AndroidAsyncAssembly extends AsyncAssembly {
         statusUpdateRunnable.setExecutor(statusUpdateTask);
 
         AssemblyRunnable assemblyRunnable = new AssemblyRunnable();
-        AsyncAssemblyExecutorImpl asyncAssemblyExecutorImpl = new AsyncAssemblyExecutorImpl(this,
+        executor = new AsyncAssemblyExecutorImpl(this,
                 assemblyRunnable, statusUpdateTask);
 
-        assemblyRunnable.setExecutor(asyncAssemblyExecutorImpl);
+        assemblyRunnable.setExecutor((AsyncAssemblyExecutorImpl)executor);
 
-        asyncAssemblyExecutorImpl.execute();
+        executor.execute();
     }
 
     class AssemblyRunnable implements Runnable {
@@ -89,7 +93,7 @@ public class AndroidAsyncAssembly extends AsyncAssembly {
         public AssemblyResponse call() {
             try {
                 return watchStatus();
-            } catch (RequestException | LocalOperationException | InterruptedException e) {
+            } catch (RequestException | LocalOperationException e) {
                 executor.setError(e);
                 executor.cancel(false);
             }

@@ -6,7 +6,10 @@ import com.transloadit.sdk.response.AssemblyResponse;
 
 import java.util.concurrent.Callable;
 
-public class AssemblyStatusUpdateTask extends AsyncTask<Void, Void, AssemblyResponse> {
+/**
+ * This class helps us run a watch on an assembly status in an async manner.
+ */
+class AssemblyStatusUpdateTask extends AsyncTask<Void, Void, AssemblyResponse> {
     private AndroidAsyncAssembly assembly;
     private Exception exception;
     private Callable<AssemblyResponse> callable;

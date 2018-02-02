@@ -2,13 +2,15 @@ package com.transloadit.android.sdk;
 
 import android.os.AsyncTask;
 
-import com.transloadit.sdk.AsyncAssemblyExecutor;
+import com.transloadit.sdk.async.AsyncAssemblyExecutor;
 
+/**
+ * Handles the async execution of an assembly.
+ */
 class AsyncAssemblyExecutorImpl extends AsyncTask<Void, Long, Void> implements AsyncAssemblyExecutor {
     private AndroidAsyncAssembly asyncAssembly;
     private AssemblyStatusUpdateTask statusUpdateTask;
     private Runnable runnable;
-    private boolean stopped;
     private Exception exception;
 
     public AsyncAssemblyExecutorImpl(AndroidAsyncAssembly asyncAssembly,
@@ -16,7 +18,6 @@ class AsyncAssemblyExecutorImpl extends AsyncTask<Void, Long, Void> implements A
         this.asyncAssembly = asyncAssembly;
         this.runnable = runnable;
         this.statusUpdateTask = statusUpdateTask;
-        stopped = false;
     }
 
     @Override
@@ -35,7 +36,6 @@ class AsyncAssemblyExecutorImpl extends AsyncTask<Void, Long, Void> implements A
 
     @Override
     protected void onCancelled() {
-        stopped = true;
         if (exception != null) {
             asyncAssembly.getListener().onUploadFailed(exception);
         }
@@ -59,10 +59,7 @@ class AsyncAssemblyExecutorImpl extends AsyncTask<Void, Long, Void> implements A
 
     @Override
     public void hardStop() {
-        cancel(false);
-        while (!stopped) {
-            // do nothing but wait until it is stopped.
-        }
+        cancel(true);
     }
 
     void setError(Exception exception) {
