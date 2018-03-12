@@ -42,46 +42,31 @@ interface.
 ```java
 
 public class MyAssemblyProgressListener  implements AssemblyProgressListener {
-    private Activity activity;
-    private ProgressBar progressBar;
-    
-    public MyAssemblyProgressListener(Activity activity, ProgressBar progressBar) {
-        this.activity = activity;
-        this.progressBar = progressBar;
-    }
-    
     @Override
     public void onUploadFinished() {
-        System.out.println("You Assembly Upload is done and it's now executing");
+        System.out.println("upload finished!!! waiting for execution ...");
+    }
+
+    @Override
+    public void onUploadPogress(long uploadedBytes, long totalBytes) {
+        System.out.println("uploaded: " + uploadedBytes + " of: " + totalBytes);
     }
 
     @Override
     public void onAssemblyFinished(AssemblyResponse response) {
-        try {
-            System.out.println("Your Assembly is done executing with status: " + response.json().getString("ok"));
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+        System.out.println("Assembly finished with status: " + response.json().getString("ok"));
     }
 
     @Override
     public void onUploadFailed(Exception exception) {
-        System.out.print("Assmebly file upload failed with error: " + exception.getMessage());
+        System.out.println("upload failed :(");
+        exception.printStackTrace();
     }
 
     @Override
     public void onAssemblyStatusUpdateFailed(Exception exception) {
-        System.out.print("Assmebly status update failed with error: " + exception.getMessage());
-    }
-
-    @Override
-    public ProgressBar getProgressBar() {
-        return progressBar;
-    }
-
-    @Override
-    public Activity getActivity() {
-        return activity;
+        System.out.println("unable to fetch status update :(");
+        exception.printStackTrace();
     }
 }
     
@@ -100,11 +85,11 @@ public class MainActivity extends AppCompatActivity implements AssemblyProgressL
         
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         
-        AssemblyProgressListener listener = new MyAssemblyProgressListener(this, progressBar);
+        AssemblyProgressListener listener = new MyAssemblyProgressListener();
 
-        Transloadit transloadit = new Transloadit("key", "secret");
-        Assembly assembly = transloadit.newAssembly(listener);
-        assembly.addFile("file", new File("path/to/file.jpg"));
+        AndroidTransloadit transloadit = new AndroidTransloadit("key", "secret");
+        AndroidAsyncAssembly assembly = transloadit.newAssembly(listener);
+        assembly.addFile(new File("path/to/file.jpg"), "file");
         
         Map<String, Object> stepOptions = new HashMap<>();
         stepOptions.put("width", 75);

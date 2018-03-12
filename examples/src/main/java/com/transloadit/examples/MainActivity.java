@@ -14,7 +14,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.transloadit.android.sdk.AndroidAsyncAssembly;
-import com.transloadit.android.sdk.Transloadit;
+import com.transloadit.android.sdk.AndroidTransloadit;
 import com.transloadit.sdk.async.AssemblyProgressListener;
 import com.transloadit.sdk.exceptions.LocalOperationException;
 import com.transloadit.sdk.exceptions.RequestException;
@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity implements AssemblyProgressL
     private Button pauseButton;
     private Button resumeButton;
     private ProgressBar progressBar;
-    private Transloadit transloadit;
+    private AndroidTransloadit transloadit;
     private AndroidAsyncAssembly androidAsyncAssembly;
 
     @Override
@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity implements AssemblyProgressL
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        transloadit = new Transloadit("key", "secret");
+        transloadit = new AndroidTransloadit("key", "secret");
         androidAsyncAssembly = transloadit.newAssembly(this, this);
 
         status = (TextView) findViewById(R.id.status);

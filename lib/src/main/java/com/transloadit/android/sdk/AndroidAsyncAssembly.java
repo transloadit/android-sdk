@@ -3,7 +3,9 @@ package com.transloadit.android.sdk;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.AsyncTask;
 
+import com.transloadit.sdk.Assembly;
 import com.transloadit.sdk.async.AssemblyProgressListener;
 import com.transloadit.sdk.async.AsyncAssembly;
 import com.transloadit.sdk.exceptions.LocalOperationException;
@@ -20,7 +22,10 @@ import io.tus.android.client.TusPreferencesURLStore;
 import io.tus.java.client.ProtocolException;
 import io.tus.java.client.TusUpload;
 
-
+/**
+ * This class represents a new assembly being created.
+ * It is similar to {@link Assembly} but provides Asynchronous functionality.
+ */
 public class AndroidAsyncAssembly extends AsyncAssembly {
     private String preferenceName;
     private Activity activity;
@@ -28,25 +33,28 @@ public class AndroidAsyncAssembly extends AsyncAssembly {
     public static final String DEFAULT_PREFERENCE_NAME = "tansloadit_android_sdk_urls";
 
 
-    public AndroidAsyncAssembly(Transloadit transloadit, AssemblyProgressListener listener, Activity activity) {
+    /**
+     * A new instance of {@link AndroidAsyncAssembly}
+     *
+     * @param transloadit {@link AndroidTransloadit} the transloadit client
+     * @param listener an implementation of {@link AssemblyProgressListener}
+     * @param activity {@link Activity} the activity where this assembly creation is taking place
+     */
+    public AndroidAsyncAssembly(AndroidTransloadit transloadit, AssemblyProgressListener listener, Activity activity) {
         super(transloadit, listener);
-        preferenceName = DEFAULT_PREFERENCE_NAME;
-        SharedPreferences pref = activity.getSharedPreferences(preferenceName, 0);
-        setTusURLStore(new TusPreferencesURLStore(pref));
         this.activity = activity;
+        setPreferenceName(DEFAULT_PREFERENCE_NAME);
     }
 
     /**
+     * Set the Activity storage preference name
      *
      * @param name set the storage preference name
      */
     public void setPreferenceName(String name) {
         preferenceName = name;
-    }
-
-    @Override
-    protected TusUpload getTusUploadInstance(File file) throws FileNotFoundException {
-        return new TusAndroidUpload(Uri.fromFile(file), activity);
+        SharedPreferences pref = activity.getSharedPreferences(preferenceName, 0);
+        setTusURLStore(new TusPreferencesURLStore(pref));
     }
 
     @Override
@@ -55,31 +63,8 @@ public class AndroidAsyncAssembly extends AsyncAssembly {
         AssemblyStatusUpdateTask statusUpdateTask = new AssemblyStatusUpdateTask(this, statusUpdateRunnable);
         statusUpdateRunnable.setExecutor(statusUpdateTask);
 
-        AssemblyRunnable assemblyRunnable = new AssemblyRunnable();
-        executor = new AsyncAssemblyExecutorImpl(this,
-                assemblyRunnable, statusUpdateTask);
-
-        assemblyRunnable.setExecutor((AsyncAssemblyExecutorImpl)executor);
-
+        executor = new AsyncAssemblyExecutorImpl(statusUpdateTask);
         executor.execute();
-    }
-
-    class AssemblyRunnable implements Runnable {
-        private AsyncAssemblyExecutorImpl executor;
-
-        void setExecutor(AsyncAssemblyExecutorImpl executor) {
-            this.executor = executor;
-        }
-
-        @Override
-        public void run() {
-            try {
-                uploadTusFiles();
-            } catch (IOException | ProtocolException e) {
-                executor.setError(e);
-                executor.stop();
-            }
-        }
     }
 
     class AssemblyStatusUpdateCallable implements Callable<AssemblyResponse> {
@@ -99,6 +84,58 @@ public class AndroidAsyncAssembly extends AsyncAssembly {
             }
 
             return null;
+        }
+    }
+
+    private class AsyncAssemblyExecutorImpl extends AsyncTask<Void, Long, Void> implements AsyncAssemblyExecutor {
+        private AssemblyStatusUpdateTask statusUpdateTask;
+        private Exception exception;
+
+        public AsyncAssemblyExecutorImpl(AssemblyStatusUpdateTask statusUpdateTask) {
+            this.statusUpdateTask = statusUpdateTask;
+        }
+
+        @Override
+        protected void onPostExecute(Void v) {
+            getListener().onUploadFinished();
+            statusUpdateTask.execute();
+        }
+
+        @Override
+        protected void onCancelled() {
+            if (exception != null) {
+                getListener().onUploadFailed(exception);
+            }
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            try {
+                uploadTusFiles();
+            } catch (IOException | ProtocolException e) {
+                setError(e);
+                stop();
+            }
+            return null;
+        }
+
+        @Override
+        public void execute() {
+            super.execute();
+        }
+
+        @Override
+        public void stop() {
+            cancel(false);
+        }
+
+        @Override
+        public void hardStop() {
+            cancel(true);
+        }
+
+        void setError(Exception exception) {
+            this.exception = exception;
         }
     }
 }
