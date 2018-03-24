@@ -2,7 +2,6 @@ package com.transloadit.android.sdk;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.AsyncTask;
 
 import com.transloadit.sdk.Assembly;
@@ -12,15 +11,11 @@ import com.transloadit.sdk.exceptions.LocalOperationException;
 import com.transloadit.sdk.exceptions.RequestException;
 import com.transloadit.sdk.response.AssemblyResponse;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.concurrent.Callable;
 
-import io.tus.android.client.TusAndroidUpload;
 import io.tus.android.client.TusPreferencesURLStore;
 import io.tus.java.client.ProtocolException;
-import io.tus.java.client.TusUpload;
 
 /**
  * This class represents a new assembly being created.
@@ -87,7 +82,7 @@ public class AndroidAsyncAssembly extends AsyncAssembly {
         }
     }
 
-    private class AsyncAssemblyExecutorImpl extends AsyncTask<Void, Long, Void> implements AsyncAssemblyExecutor {
+    class AsyncAssemblyExecutorImpl extends AsyncTask<Void, Long, Void> implements AsyncAssemblyExecutor {
         private AssemblyStatusUpdateTask statusUpdateTask;
         private Exception exception;
 
