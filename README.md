@@ -75,7 +75,7 @@ public class MyAssemblyProgressListener  implements AssemblyProgressListener {
 And in your activity you can have something like this
 
 ```
-public class MainActivity extends AppCompatActivity implements AssemblyProgressListener {
+public class MainActivity extends AppCompatActivity {
     private ProgressBar progressBar;
 
     @Override
