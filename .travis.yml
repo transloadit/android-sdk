@@ -1,0 +1,16 @@
+sudo: false
+language: android
+android:
+    components:
+        # SDK version
+        - android-23
+        # Use the latest revision of Android SDK Tools
+        - tools
+        # Build tools version
+        - build-tools-23.0.3
+        # Android Support Library (appcompat)
+        - extra-android-support
+        # Android Support Repository
+        - extra-android-m2repository
+script:
+    - ./gradlew test
