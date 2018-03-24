@@ -4,9 +4,12 @@ import android.app.Activity;
 
 import com.transloadit.sdk.Transloadit;
 import com.transloadit.sdk.async.AssemblyProgressListener;
+import com.transloadit.sdk.response.AssemblyResponse;
 
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import java.io.IOException;
 
@@ -28,6 +31,30 @@ public class MockAsyncAssembly extends AndroidAsyncAssembly {
             // 1077 / 3 = 359 i.e size of the LICENSE file
             Mockito.when(uploader.uploadChunk()).thenReturn(359,359, 359, 0, -1);
             return uploader;
+        }
+    }
+
+    @Override
+    protected void startExecutor() {
+        AssemblyStatusUpdateTask statusUpdateTask = Mockito.mock(AssemblyStatusUpdateTask.class);
+        Mockito.when(statusUpdateTask.execute()).thenAnswer(new Answer<Void>() {
+            public Void answer(InvocationOnMock invocation) {
+                getListener().onAssemblyFinished(Mockito.mock(AssemblyResponse.class));
+                return null;
+            }
+        });
+        executor = new MockExecutor(statusUpdateTask);
+        executor.execute();
+    }
+
+    class MockExecutor extends AndroidAsyncAssembly.AsyncAssemblyExecutorImpl {
+        MockExecutor(AssemblyStatusUpdateTask statusUpdateTask) {
+            super(statusUpdateTask);
+        }
+
+        @Override
+        public void execute() {
+            onPostExecute(doInBackground());
         }
     }
 }

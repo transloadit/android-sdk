@@ -30,7 +30,6 @@ public class AndroidAsyncAssemblyTest {
     public MockServerRule mockServerRule = new MockServerRule(9040, this, true);
 
     private MockServerClient mockServerClient;
-    private CountDownLatch signal;
     private boolean uploadFinished;
     private boolean assemblyFinished;
     private long totalUploaded;
@@ -52,15 +51,12 @@ public class AndroidAsyncAssemblyTest {
                 .withPath("/assemblies/76fe5df1c93a0a530f3e583805cf98b4").withMethod("GET"))
                 .respond(HttpResponse.response().withBody(getJson("assembly.json")));
 
-        signal = new CountDownLatch(1);
         AndroidTransloadit transloadit = new AndroidTransloadit("KEY", "SECRET", "http://localhost:9040");
         AssemblyProgressListener listener = new Listener();
         AndroidAsyncAssembly assembly = new MockAsyncAssembly(transloadit, listener, Mockito.mock(Activity.class));
         assembly.setTusURLStore(new TusURLMemoryStore());
         assembly.addFile(new File(getClass().getClassLoader().getResource("assembly.json").getFile()), "file_name");
         AssemblyResponse resumableAssembly = assembly.save();
-
-        signal.await(30, TimeUnit.SECONDS);
 
         assertEquals(resumableAssembly.json().get("id"), "76fe5df1c93a0a530f3e583805cf98b4");
         assertTrue(uploadFinished);
@@ -84,19 +80,16 @@ public class AndroidAsyncAssemblyTest {
         @Override
         public void onAssemblyFinished(AssemblyResponse response) {
             assemblyFinished = true;
-            signal.countDown();
         }
 
         @Override
         public void onUploadFailed(Exception exception) {
             uploadError = exception;
-            signal.countDown();
         }
 
         @Override
         public void onAssemblyStatusUpdateFailed(Exception exception) {
             statusUpdateError = exception;
-            signal.countDown();
         }
     }
 
