@@ -1,0 +1,33 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 24
+    buildToolsVersion "26.0.2"
+    defaultConfig {
+        minSdkVersion 15
+        targetSdkVersion 24
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    compile 'com.android.support:appcompat-v7:24.2.1'
+//    compile 'com.transloadit.sdk:transloadit:0.0.3'
+    compile 'com.github.transloadit:java-sdk:9a9b76f38d72af7455535cdf7e3f1119e9cee407'
+    compile 'io.tus.android.client:tus-android-client:0.1.5'
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.mockito:mockito-core:2.+'
+    testCompile 'org.mock-server:mockserver-netty:3.9.17'
+}
