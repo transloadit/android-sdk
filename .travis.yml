@@ -3,11 +3,11 @@ language: android
 android:
     components:
         # SDK version
-        - android-23
+        - android-24
         # Use the latest revision of Android SDK Tools
         - tools
         # Build tools version
-        - build-tools-23.0.3
+        - build-tools-26.0.2
         # Android Support Library (appcompat)
         - extra-android-support
         # Android Support Repository
