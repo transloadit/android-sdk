@@ -12,5 +12,9 @@ android:
         - extra-android-support
         # Android Support Repository
         - extra-android-m2repository
+before_install:
+    - mkdir "$ANDROID_HOME/licenses" || true
+    - cp ./licenses/* "$ANDROID_HOME/licenses/"
+
 script:
     - ./gradlew test
