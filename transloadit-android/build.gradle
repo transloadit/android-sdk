@@ -95,7 +95,7 @@ bintray {
     user = System.getenv('BINTRAY_USER')
     key = System.getenv('BINTRAY_KEY')
     configurations = ['archives']
-    dryRun = false
+    dryRun = true // change to false to publish
     pkg {
         repo = 'maven'
         name = 'transloadit-android'
