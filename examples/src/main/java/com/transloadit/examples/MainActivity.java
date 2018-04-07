@@ -1,5 +1,6 @@
 package com.transloadit.examples;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
@@ -33,7 +34,6 @@ public class MainActivity extends AppCompatActivity implements AssemblyProgressL
     private Button pauseButton;
     private Button resumeButton;
     private ProgressBar progressBar;
-    private AndroidTransloadit transloadit;
     private AndroidAsyncAssembly androidAsyncAssembly;
 
     @Override
@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity implements AssemblyProgressL
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        transloadit = new AndroidTransloadit("key", "secret");
+        AndroidTransloadit transloadit = new AndroidTransloadit("key", "secret");
         androidAsyncAssembly = transloadit.newAssembly(this, this);
 
         status = (TextView) findViewById(R.id.status);
@@ -193,10 +193,11 @@ public class MainActivity extends AppCompatActivity implements AssemblyProgressL
         }
     }
 
+    @SuppressLint("StaticFieldLeak")
     private class SaveTask extends AsyncTask<Boolean, Void, AssemblyResponse> {
         private MainActivity activity;
 
-        public SaveTask(MainActivity activity) {
+        SaveTask(MainActivity activity) {
             this.activity = activity;
         }
 

@@ -9,13 +9,13 @@ This is an **Android** SDK to make it easy to talk to the [Transloadit](https://
 
 ## Install
 
-The JARs can be downloaded manually from our [Bintray project](https://bintray.com/transloadit/maven/transloadit/view#files),
+The JARs can be downloaded manually from our [Bintray project](https://bintray.com/transloadit/maven/transloadit-android/view#files),
 or can be installed from the Maven and Jcenter repositories.
 
 **Gradle:**
 
 ```groovy
-compile 'com.transloadit.android.sdk:transloadit:0.0.1'
+compile 'com.transloadit.android.sdk:transloadit-android:0.0.1'
 ```
 
 **Maven:**
@@ -23,7 +23,7 @@ compile 'com.transloadit.android.sdk:transloadit:0.0.1'
 ```xml
 <dependency>
   <groupId>com.transloadit.android.sdk</groupId>
-  <artifactId>transloadit</artifactId>
+  <artifactId>transloadit-android</artifactId>
   <version>0.0.1</version>
 </dependency>
 ```
@@ -74,7 +74,7 @@ public class MyAssemblyProgressListener  implements AssemblyProgressListener {
 
 And in your activity you can have something like this
 
-```
+```java
 public class MainActivity extends AppCompatActivity {
     private ProgressBar progressBar;
 
