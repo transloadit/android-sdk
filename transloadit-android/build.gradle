@@ -6,7 +6,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
 
 group 'com.transloadit.android.sdk'
-version = '0.0.1'
+version = '0.0.2'
 description = "An Android Integration of the Transloadit's(https://transloadit.com) file uploading and encoding service."
 
 android {
@@ -63,6 +63,7 @@ install {
             project {
                 packaging 'aar'
                 name 'transloadit-android'
+                description project.getDescription()
                 artifactId 'transloadit-android'
                 url 'https://github.com/transloadit/android-sdk'
                 licenses {

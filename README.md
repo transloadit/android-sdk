@@ -15,7 +15,7 @@ or can be installed from the Maven and Jcenter repositories.
 **Gradle:**
 
 ```groovy
-compile 'com.transloadit.android.sdk:transloadit-android:0.0.1'
+compile 'com.transloadit.android.sdk:transloadit-android:0.0.2'
 ```
 
 **Maven:**
@@ -24,7 +24,7 @@ compile 'com.transloadit.android.sdk:transloadit-android:0.0.1'
 <dependency>
   <groupId>com.transloadit.android.sdk</groupId>
   <artifactId>transloadit-android</artifactId>
-  <version>0.0.1</version>
+  <version>0.0.2</version>
 </dependency>
 ```
 
@@ -99,5 +99,18 @@ public class MainActivity extends AppCompatActivity {
 
         assembly.save();
     }
+}
 
 ```
+
+## Example
+
+For fully working examples take a look at [examples/](https://github.com/transloadit/android-sdk/tree/master/examples).
+
+## Documentation
+
+See [Javadoc](http://javadoc.io/doc/com.transloadit.android.sdk/transloadit/0.0.2) for full API documentation.
+
+## License
+
+[The MIT License](LICENSE).
