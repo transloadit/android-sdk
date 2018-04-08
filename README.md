@@ -109,7 +109,7 @@ For fully working examples take a look at [examples/](https://github.com/translo
 
 ## Documentation
 
-See [Javadoc](http://javadoc.io/doc/com.transloadit.android.sdk/transloadit/0.0.2) for full API documentation.
+See [Javadoc](http://javadoc.io/doc/com.transloadit.android.sdk/transloadit-android/0.0.2) for full API documentation.
 
 ## License
 
