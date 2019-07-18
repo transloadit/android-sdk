@@ -58,7 +58,7 @@ public class AndroidAsyncAssemblyTest {
         assembly.addFile(new File(getClass().getClassLoader().getResource("assembly.json").getFile()), "file_name");
         AssemblyResponse resumableAssembly = assembly.save();
 
-        assertEquals(resumableAssembly.json().get("id"), "76fe5df1c93a0a530f3e583805cf98b4");
+        assertEquals(resumableAssembly.json().get("assembly_id"), "76fe5df1c93a0a530f3e583805cf98b4");
         assertTrue(uploadFinished);
         assertTrue(assemblyFinished);
         assertEquals(1077, totalUploaded);
