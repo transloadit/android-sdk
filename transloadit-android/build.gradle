@@ -6,7 +6,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
 
 group 'com.transloadit.android.sdk'
-version = '0.0.3'
+version = '0.0.4'
 description = "An Android Integration of the Transloadit's(https://transloadit.com) file uploading and encoding service."
 
 android {
@@ -30,7 +30,7 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:24.2.1'
-    compile 'com.transloadit.sdk:transloadit:0.1.5'
+    compile 'com.transloadit.sdk:transloadit:0.1.6'
     compile 'io.tus.android.client:tus-android-client:0.1.5'
     testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-core:2.+'
