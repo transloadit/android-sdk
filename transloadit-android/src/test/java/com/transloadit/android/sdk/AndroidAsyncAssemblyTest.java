@@ -8,7 +8,7 @@ import com.transloadit.sdk.response.AssemblyResponse;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockserver.client.server.MockServerClient;
+import org.mockserver.client.MockServerClient;
 import org.mockserver.junit.MockServerRule;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
@@ -17,8 +17,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import io.tus.java.client.TusURLMemoryStore;
 
@@ -27,7 +25,7 @@ import static org.mockserver.model.RegexBody.regex;
 
 public class AndroidAsyncAssemblyTest {
     @Rule
-    public MockServerRule mockServerRule = new MockServerRule(9040, this, true);
+    public MockServerRule mockServerRule = new MockServerRule(this, true, 9040);
 
     private MockServerClient mockServerClient;
     private boolean uploadFinished;

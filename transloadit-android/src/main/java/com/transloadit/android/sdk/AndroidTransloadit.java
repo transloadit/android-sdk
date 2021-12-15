@@ -1,10 +1,10 @@
 package com.transloadit.android.sdk;
 
 import android.app.Activity;
+import androidx.annotation.Nullable;
 
 import com.transloadit.sdk.async.AssemblyProgressListener;
 
-import org.jetbrains.annotations.Nullable;
 
 
 public class AndroidTransloadit extends com.transloadit.sdk.Transloadit {

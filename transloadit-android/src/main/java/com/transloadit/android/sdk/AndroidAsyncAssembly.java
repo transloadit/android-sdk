@@ -17,6 +17,7 @@ import java.util.concurrent.Callable;
 import io.tus.android.client.TusPreferencesURLStore;
 import io.tus.java.client.ProtocolException;
 
+
 /**
  * This class represents a new assembly being created.
  * It is similar to {@link Assembly} but provides Asynchronous functionality.

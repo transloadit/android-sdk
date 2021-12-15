@@ -1,23 +1,29 @@
 plugins {
-    id "com.jfrog.bintray" version "1.7"
+    id 'signing'
 }
 
+
 apply plugin: 'com.android.library'
-apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'maven-publish'
 
 group 'com.transloadit.android.sdk'
 version = '0.0.4'
 description = "An Android Integration of the Transloadit's(https://transloadit.com) file uploading and encoding service."
 
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
 android {
-    compileSdkVersion 24
-    buildToolsVersion "26.0.2"
+    compileSdkVersion 29
+    buildToolsVersion "30.0.2"
     defaultConfig {
         minSdkVersion 15
-        targetSdkVersion 24
+        targetSdkVersion 29
         versionCode 1
         versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
     buildTypes {
         release {
@@ -28,28 +34,32 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:24.2.1'
-    compile 'com.transloadit.sdk:transloadit:0.1.6'
-    compile 'io.tus.android.client:tus-android-client:0.1.5'
-    testCompile 'junit:junit:4.12'
-    testCompile 'org.mockito:mockito-core:2.+'
-    testCompile 'org.mock-server:mockserver-netty:3.9.17'
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.appcompat:appcompat:1.0.0'
+    implementation 'com.transloadit.sdk:transloadit:0.1.6'
+    implementation 'io.tus.android.client:tus-android-client:0.1.5'
+    implementation 'io.tus.java.client:tus-java-client:0.4.5'
+    implementation 'org.jetbrains:annotations:22.0.0'
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.mockito:mockito-core:3.11.1'
+    testImplementation 'org.mock-server:mockserver-junit-rule:5.11.2'
 }
 
 task sourcesJar(type: Jar) {
-    classifier = 'sources'
+    archiveClassifier.set('sources')
     from android.sourceSets.main.java.srcDirs
 }
 
 task javadoc(type: Javadoc) {
     source = android.sourceSets.main.java.srcDirs
-    classpath = configurations.compile
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    android.libraryVariants.all { variant ->
+        owner.classpath += variant.javaCompileProvider.get().classpath
+    }
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
+    archiveClassifier.set('javadoc')
     from javadoc.destinationDir
 }
 
@@ -57,6 +67,7 @@ artifacts {
     archives sourcesJar, javadocJar
 }
 
+/*
 install {
     repositories.mavenInstaller {
         pom {
@@ -90,26 +101,4 @@ install {
         }
     }
 }
-
-
-bintray {
-    user = System.getenv('BINTRAY_USER')
-    key = System.getenv('BINTRAY_KEY')
-    configurations = ['archives']
-    dryRun = true // change to false to publish
-    pkg {
-        repo = 'maven'
-        name = 'transloadit-android'
-        userOrg = 'transloadit'
-        licenses = ['MIT']
-        vcsUrl = 'https://github.com/transloadit/android-sdk.git'
-        websiteUrl = 'https://github.com/transloadit/android-sdk'
-        issueTrackerUrl = 'https://github.com/transloadit/android-sdk/issues'
-        publicDownloadNumbers = true
-        version {
-            name = project.getVersion()
-            desc = project.getDescription()
-            vcsTag = project.getVersion()
-        }
-    }
-}
+*/
