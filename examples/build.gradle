@@ -1,4 +1,4 @@
-apply plugin: 'com.android.library'
+apply plugin: 'com.android.application'
 
 repositories {
     mavenCentral()
@@ -27,7 +27,6 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.appcompat:appcompat:1.0.0'
     implementation 'com.android.support.constraint:constraint-layout:2.0.4'
-    implementation 'com.transloadit.sdk:transloadit:0.1.6'
-    implementation project(path: ':transloadit-android')
+    implementation 'com.transloadit.android.sdk:transloadit-android:0.0.3'
     testImplementation 'junit:junit:4.13.2'
 }
