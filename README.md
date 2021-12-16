@@ -1,4 +1,5 @@
-# android-sdk
+[![CI](https://github.com/transloadit/android-sdk/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/transloadit/android-sdk/actions/workflows/CI.yml)
+# android-sdk 
 An **Android** Integration for [Transloadit](https://transloadit.com)'s file uploading and encoding service
 
 ## Intro
@@ -9,13 +10,12 @@ This is an **Android** SDK to make it easy to talk to the [Transloadit](https://
 
 ## Install
 
-The JARs can be downloaded manually from our [Bintray project](https://bintray.com/transloadit/maven/transloadit-android/view#files),
-or can be installed from the Maven and Jcenter repositories.
+The JARs can be downloaded manually from [Maven Central](https://search.maven.org/artifact/com.transloadit.android.sdk/transloadit-android).
 
 **Gradle:**
 
 ```groovy
-compile 'com.transloadit.android.sdk:transloadit-android:0.0.2'
+implementation 'com.transloadit.android.sdk:transloadit-android:0.0.3'
 ```
 
 **Maven:**
@@ -24,7 +24,7 @@ compile 'com.transloadit.android.sdk:transloadit-android:0.0.2'
 <dependency>
   <groupId>com.transloadit.android.sdk</groupId>
   <artifactId>transloadit-android</artifactId>
-  <version>0.0.2</version>
+  <version>0.0.3</version>
 </dependency>
 ```
 
@@ -109,7 +109,7 @@ For fully working examples take a look at [examples/](https://github.com/translo
 
 ## Documentation
 
-See [Javadoc](http://javadoc.io/doc/com.transloadit.android.sdk/transloadit-android/0.0.2) for full API documentation.
+See [Javadoc](https://javadoc.io/doc/com.transloadit.android.sdk/transloadit-android/latest/index.html) for full API documentation.
 
 ## License
 
