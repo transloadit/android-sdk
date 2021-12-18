@@ -71,7 +71,7 @@ public class AndroidAsyncAssemblyTest {
         }
 
         @Override
-        public void onUploadPogress(long uploadedBytes, long totalBytes) {
+        public void onUploadProgress(long uploadedBytes, long totalBytes) {
             totalUploaded = uploadedBytes;
         }
 
