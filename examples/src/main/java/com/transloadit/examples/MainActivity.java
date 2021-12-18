@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity implements AssemblyProgressL
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        AndroidTransloadit transloadit = new AndroidTransloadit("key", "secret");
+        AndroidTransloadit transloadit = new AndroidTransloadit("2ffcb91ab9bb40cfb070f39a0111c772", "d68b8cb41fbcbedbafe587f06ffc019551b8b11b");
         androidAsyncAssembly = transloadit.newAssembly(this, this);
 
         status = (TextView) findViewById(R.id.status);
@@ -123,6 +123,13 @@ public class MainActivity extends AppCompatActivity implements AssemblyProgressL
     }
 
     @Override
+    public void onUploadPogress(long uploadedBytes, long totalBytes) {
+        progressBar.setProgress((int) ((double) uploadedBytes / totalBytes * 100));
+
+    }
+
+
+    @Override
     public void onAssemblyFinished(AssemblyResponse response) {
         try {
             setStatus("Your AndroidAsyncAssembly is done executing with status: " + response.json().getString("ok"));
@@ -141,10 +148,6 @@ public class MainActivity extends AppCompatActivity implements AssemblyProgressL
         showError(exception);
     }
 
-    @Override
-    public void onUploadPogress(long uploadedBytes, long totalBytes) {
-        progressBar.setProgress((int) ((double) uploadedBytes / totalBytes * 100));
-    }
 
     private void setStatus(String text) {
         status.setText(text);
