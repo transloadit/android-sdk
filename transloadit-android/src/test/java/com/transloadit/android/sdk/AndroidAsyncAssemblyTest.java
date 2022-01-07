@@ -1,6 +1,11 @@
 package com.transloadit.android.sdk;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import android.app.Activity;
+
 
 import com.transloadit.sdk.async.AssemblyProgressListener;
 import com.transloadit.sdk.response.AssemblyResponse;
@@ -20,12 +25,10 @@ import java.io.IOException;
 
 import io.tus.java.client.TusURLMemoryStore;
 
-import static org.junit.Assert.*;
-import static org.mockserver.model.RegexBody.regex;
-
 public class AndroidAsyncAssemblyTest {
+    public final int PORT = 9040;
     @Rule
-    public MockServerRule mockServerRule = new MockServerRule(this, true, 9040);
+    public MockServerRule mockServerRule = new MockServerRule(this, true, PORT);
 
     private MockServerClient mockServerClient;
     private boolean uploadFinished;
@@ -38,10 +41,8 @@ public class AndroidAsyncAssemblyTest {
     public void testSave() throws Exception {
         // for assembly creation
         mockServerClient.when(HttpRequest.request()
-                .withPath("/assemblies")
-                .withMethod("POST")
-                .withBody(regex("[\\w\\W]*tus_num_expected_upload_files\"\\r\\nContent-Length: 1" +
-                        "\\r\\n\\r\\n1[\\w\\W]*")))
+                .withPath("/assemblies/76fe5df1c93a0a530f3e583805cf98b4")
+                .withMethod("POST"))
                 .respond(HttpResponse.response().withBody(getJson("assembly.json")));
 
         // for assembly status check
@@ -49,9 +50,10 @@ public class AndroidAsyncAssemblyTest {
                 .withPath("/assemblies/76fe5df1c93a0a530f3e583805cf98b4").withMethod("GET"))
                 .respond(HttpResponse.response().withBody(getJson("assembly.json")));
 
-        AndroidTransloadit transloadit = new AndroidTransloadit("KEY", "SECRET", "http://localhost:9040");
+        AndroidTransloadit transloadit = new AndroidTransloadit("KEY", "SECRET", "http://localhost:" + PORT);
         AssemblyProgressListener listener = new Listener();
         AndroidAsyncAssembly assembly = new MockAsyncAssembly(transloadit, listener, Mockito.mock(Activity.class));
+        assembly.setAssemblyId("76fe5df1c93a0a530f3e583805cf98b4");
         assembly.setTusURLStore(new TusURLMemoryStore());
         assembly.addFile(new File(getClass().getClassLoader().getResource("assembly.json").getFile()), "file_name");
         AssemblyResponse resumableAssembly = assembly.save();

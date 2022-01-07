@@ -21,6 +21,7 @@ import com.transloadit.sdk.exceptions.LocalOperationException;
 import com.transloadit.sdk.exceptions.RequestException;
 import com.transloadit.sdk.response.AssemblyResponse;
 
+
 import org.json.JSONException;
 
 import java.io.FileNotFoundException;
@@ -123,9 +124,16 @@ public class MainActivity extends AppCompatActivity implements AssemblyProgressL
     }
 
     @Override
-    public void onAssemblyFinished(AssemblyResponse response) {
+    public void onUploadProgress(long l, long l1) {
+        progressBar.setProgress((int) ((double) l / l1 * 100));
+
+    }
+
+
+    @Override
+    public void onAssemblyFinished(AssemblyResponse assemblyResponse) {
         try {
-            setStatus("Your AndroidAsyncAssembly is done executing with status: " + response.json().getString("ok"));
+            setStatus("Your AndroidAsyncAssembly is done executing with status: " + assemblyResponse.json().getString("ok"));
         } catch (JSONException e) {
             showError(e);
         }
@@ -139,11 +147,6 @@ public class MainActivity extends AppCompatActivity implements AssemblyProgressL
     @Override
     public void onAssemblyStatusUpdateFailed(Exception exception) {
         showError(exception);
-    }
-
-    @Override
-    public void onUploadPogress(long uploadedBytes, long totalBytes) {
-        progressBar.setProgress((int) ((double) uploadedBytes / totalBytes * 100));
     }
 
     private void setStatus(String text) {
@@ -183,6 +186,7 @@ public class MainActivity extends AppCompatActivity implements AssemblyProgressL
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (resultCode != RESULT_OK) {
             return;
         }
