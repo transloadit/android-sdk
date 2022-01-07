@@ -10,6 +10,7 @@ import android.app.Activity;
 import com.transloadit.sdk.async.AssemblyProgressListener;
 import com.transloadit.sdk.response.AssemblyResponse;
 
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -37,6 +38,7 @@ public class AndroidAsyncAssemblyTest {
     private Exception statusUpdateError;
     private Exception uploadError;
 
+
     @Test
     public void testSave() throws Exception {
         // for assembly creation
@@ -57,7 +59,6 @@ public class AndroidAsyncAssemblyTest {
         assembly.setTusURLStore(new TusURLMemoryStore());
         assembly.addFile(new File(getClass().getClassLoader().getResource("assembly.json").getFile()), "file_name");
         AssemblyResponse resumableAssembly = assembly.save();
-
         assertEquals(resumableAssembly.json().get("assembly_id"), "76fe5df1c93a0a530f3e583805cf98b4");
         assertTrue(uploadFinished);
         assertTrue(assemblyFinished);
