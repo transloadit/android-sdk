@@ -1,1 +1,2 @@
-include ':transloadit-android', ':examples'
+include ':transloadit-android'
+include ':examples'

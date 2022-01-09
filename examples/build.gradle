@@ -1,18 +1,22 @@
 apply plugin: 'com.android.application'
 
-android {
-    compileSdkVersion 24
-    buildToolsVersion '26.0.2'
+repositories {
+    mavenCentral()
+    jcenter()
+}
 
+android {
+    packagingOptions {
+        exclude 'version.properties'
+    }
+    compileSdkVersion 29
+    buildToolsVersion "30.0.2"
     defaultConfig {
-        applicationId "com.transloadit.examples"
         minSdkVersion 15
-        targetSdkVersion 24
+        targetSdkVersion 29
         versionCode 1
         versionName "1.0"
-
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
     buildTypes {
         release {
@@ -23,9 +27,11 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:24.2.1'
-    compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    compile 'com.transloadit.android.sdk:transloadit-android:0.0.2'
-    testCompile 'junit:junit:4.12'
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.appcompat:appcompat:1.3.1'
+    implementation 'com.android.support.constraint:constraint-layout:2.0.4'
+    implementation 'com.transloadit.sdk:transloadit:0.4.1'
+    implementation project(':transloadit-android')
+    testImplementation 'junit:junit:4.13.2'
 }
+

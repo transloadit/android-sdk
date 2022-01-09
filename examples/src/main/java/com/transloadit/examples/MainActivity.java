@@ -5,7 +5,7 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -142,7 +142,7 @@ public class MainActivity extends AppCompatActivity implements AssemblyProgressL
     }
 
     @Override
-    public void onUploadPogress(long uploadedBytes, long totalBytes) {
+    public void onUploadProgress(long uploadedBytes, long totalBytes) {
         progressBar.setProgress((int) ((double) uploadedBytes / totalBytes * 100));
     }
 
@@ -183,6 +183,7 @@ public class MainActivity extends AppCompatActivity implements AssemblyProgressL
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (resultCode != RESULT_OK) {
             return;
         }
