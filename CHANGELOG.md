@@ -1,3 +1,7 @@
+### 0.0.5 / 2022-01-10 ###
+* Update dependency for Transloadit Java SDK to 0.4.1, 
+  this update is recommended as it contains patches for know security vulnerabilities.
+
 ### 0.0.4 / 2021-02-25 ###
 
 * Update dependency for Transloadit Java SDK to 0.1.6
