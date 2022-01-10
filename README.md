@@ -28,9 +28,13 @@ implementation 'com.transloadit.android.sdk:transloadit-android:0.0.5'
 </dependency>
 ```
 
+<a name="user-content-android-sdk-usage">
+
 ## Usage
 
 All interactions with the SDK begin with the `com.transloadit.android.sdk.Transloadit` class.
+
+<a name="user-content-android-sdk-create-an-assembly">
 
 ### Create an Assembly
 
@@ -103,9 +107,13 @@ public class MainActivity extends AppCompatActivity {
 
 ```
 
+<a name="user-content-android-sdk-example">
+
 ## Example
 
 For fully working examples take a look at [examples/](https://github.com/transloadit/android-sdk/tree/master/examples).
+
+<a name="user-content-android-sdk-documentation">
 
 ## Documentation
 
