@@ -15,7 +15,7 @@ The JARs can be downloaded manually from [Maven Central](https://search.maven.or
 **Gradle:**
 
 ```groovy
-implementation 'com.transloadit.android.sdk:transloadit-android:0.0.3'
+implementation 'com.transloadit.android.sdk:transloadit-android:0.0.5'
 ```
 
 **Maven:**
@@ -24,7 +24,7 @@ implementation 'com.transloadit.android.sdk:transloadit-android:0.0.3'
 <dependency>
   <groupId>com.transloadit.android.sdk</groupId>
   <artifactId>transloadit-android</artifactId>
-  <version>0.0.3</version>
+  <version>0.0.5</version>
 </dependency>
 ```
 
@@ -48,7 +48,7 @@ public class MyAssemblyProgressListener  implements AssemblyProgressListener {
     }
 
     @Override
-    public void onUploadPogress(long uploadedBytes, long totalBytes) {
+    public void onUploadProgress(long uploadedBytes, long totalBytes) {
         System.out.println("uploaded: " + uploadedBytes + " of: " + totalBytes);
     }
 
