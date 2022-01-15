@@ -11,12 +11,9 @@ repositories {
 
 android {
     compileSdkVersion 29
-    buildToolsVersion "30.0.2"
     defaultConfig {
         minSdkVersion 15
         targetSdkVersion 29
-        versionCode 1
-        versionName "1.0"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
     buildTypes {
@@ -39,12 +36,11 @@ dependencies {
     testImplementation 'org.mock-server:mockserver-junit-rule:5.11.2'
 }
 
-def config = new ConfigSlurper().parse(new File("${projectDir}/src/main/res/buildinfo.properties").toURI().toURL())
+def config = new ConfigSlurper().parse(new File("${projectDir}/src/main/resources/android-sdk-version/version.properties").toURI().toURL())
 
 version=config.version
 group=config.group
 description=config.description
-
 
 
 task sourcesJar(type: Jar) {
