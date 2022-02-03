@@ -43,7 +43,8 @@ public class AndroidTransloadit extends com.transloadit.sdk.Transloadit {
     }
 
     /**
-     * Determines the current version number of the SDK => Method is called within the constructor.
+     * Determines the current version number of the SDK. This method is called within the constructor
+     * of the parent class.
      * @return Version Number as String
      */
     @Override
