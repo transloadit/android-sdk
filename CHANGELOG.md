@@ -1,6 +1,6 @@
 ### 0.0.6 / 2022-02-03 ###
-* Update dependency for Transloadit Java SDK to 0.4.2,
-* Add Android SDK version to Transloadit-Client headerr known security vulnerabilities.
+* Update dependency for Transloadit Java SDK to 0.4.2
+* Add Android SDK version to Transloadit-Client header
 
 ### 0.0.5 / 2022-01-10 ###
 * Update dependency for Transloadit Java SDK to 0.4.1, 
