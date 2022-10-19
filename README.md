@@ -1,4 +1,4 @@
-[![CI](https://github.com/transloadit/android-sdk/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/transloadit/android-sdk/actions/workflows/CI.yml)
+[![CI](https://github.com/transloadit/android-sdk/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/transloadit/android-sdk/actions/workflows/CI.yml)
 # android-sdk 
 An **Android** Integration for [Transloadit](https://transloadit.com)'s file uploading and encoding service
 
