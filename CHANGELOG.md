@@ -1,3 +1,8 @@
+### 0.0.7 / 2022-10-30 ###
+* Updated dependency for Transloadit Java SDK to 0.4.4 => includes Socket-IO 4 and a security patch
+* Updated to androidx.appcompat:appcompat:1.5.1
+* Set compileSdkVersion to 31, and targetSdkVersion 31
+
 ### 0.0.6 / 2022-02-03 ###
 * Update dependency for Transloadit Java SDK to 0.4.2
 * Add Android SDK version to Transloadit-Client header
