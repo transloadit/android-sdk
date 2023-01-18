@@ -105,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
 
 ## Example
 
-For fully working examples take a look at [examples/](https://github.com/transloadit/android-sdk/tree/master/examples).
+For fully working examples take a look at [examples/](https://github.com/transloadit/android-sdk/tree/main/examples).
 
 ## Documentation
 
