@@ -1,5 +1,7 @@
 [![CI](https://github.com/transloadit/android-sdk/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/transloadit/android-sdk/actions/workflows/CI.yml)
-# android-sdk 
+
+# android-sdk
+
 An **Android** Integration for [Transloadit](https://transloadit.com)'s file uploading and encoding service
 
 ## Intro
@@ -15,7 +17,7 @@ The JARs can be downloaded manually from [Maven Central](https://search.maven.or
 **Gradle:**
 
 ```groovy
-implementation 'com.transloadit.android.sdk:transloadit-android:0.0.7'
+implementation 'com.transloadit.android.sdk:transloadit-android:0.0.8'
 ```
 
 **Maven:**
@@ -24,7 +26,7 @@ implementation 'com.transloadit.android.sdk:transloadit-android:0.0.7'
 <dependency>
   <groupId>com.transloadit.android.sdk</groupId>
   <artifactId>transloadit-android</artifactId>
-  <version>0.0.7</version>
+  <version>0.0.8</version>
 </dependency>
 ```
 
@@ -36,7 +38,7 @@ All interactions with the SDK begin with the `com.transloadit.android.sdk.Transl
 
 To create an assembly, you use the `newAssembly` method.
 
-To use this functionality in it's full glory, you need implement the `AssemblyProgressListener` 
+To use this functionality in it's full glory, you need implement the `AssemblyProgressListener`
 interface.
 
 ```java
@@ -69,7 +71,7 @@ public class MyAssemblyProgressListener  implements AssemblyProgressListener {
         exception.printStackTrace();
     }
 }
-    
+
 ```
 
 And in your activity you can have something like this
@@ -82,15 +84,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        
+
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
-        
+
         AssemblyProgressListener listener = new MyAssemblyProgressListener();
 
         AndroidTransloadit transloadit = new AndroidTransloadit("key", "secret");
         AndroidAsyncAssembly assembly = transloadit.newAssembly(listener);
         assembly.addFile(new File("path/to/file.jpg"), "file");
-        
+
         Map<String, Object> stepOptions = new HashMap<>();
         stepOptions.put("width", 75);
         stepOptions.put("height", 75);
