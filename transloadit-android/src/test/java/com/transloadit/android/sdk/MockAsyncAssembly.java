@@ -1,8 +1,7 @@
 package com.transloadit.android.sdk;
 
-import android.app.Activity;
+import android.content.Context;
 
-import com.transloadit.sdk.Transloadit;
 import com.transloadit.sdk.async.AssemblyProgressListener;
 import com.transloadit.sdk.response.AssemblyResponse;
 
@@ -19,8 +18,8 @@ import io.tus.java.client.TusUpload;
 import io.tus.java.client.TusUploader;
 
 public class MockAsyncAssembly extends AndroidAsyncAssembly {
-    public MockAsyncAssembly(AndroidTransloadit transloadit, AssemblyProgressListener listener, Activity activity) {
-        super(transloadit, listener, activity);
+    public MockAsyncAssembly(AndroidTransloadit transloadit, AssemblyProgressListener listener, Context context) {
+        super(transloadit, listener, context);
         tusClient = new MockTusClient();
     }
 

@@ -4,13 +4,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import android.app.Activity;
 
+import android.content.Context;
 
 import com.transloadit.sdk.async.AssemblyProgressListener;
 import com.transloadit.sdk.response.AssemblyResponse;
 
-import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -54,7 +53,7 @@ public class AndroidAsyncAssemblyTest {
 
         AndroidTransloadit transloadit = new AndroidTransloadit("KEY", "SECRET", "http://localhost:" + PORT);
         AssemblyProgressListener listener = new Listener();
-        AndroidAsyncAssembly assembly = new MockAsyncAssembly(transloadit, listener, Mockito.mock(Activity.class));
+        AndroidAsyncAssembly assembly = new MockAsyncAssembly(transloadit, listener, Mockito.mock(Context.class));
         assembly.setAssemblyId("76fe5df1c93a0a530f3e583805cf98b4");
         assembly.setTusURLStore(new TusURLMemoryStore());
         assembly.addFile(new File(getClass().getClassLoader().getResource("assembly.json").getFile()), "file_name");
