@@ -1,6 +1,6 @@
 package com.transloadit.android.sdk;
 
-import android.app.Activity;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 
@@ -24,7 +24,7 @@ import io.tus.java.client.ProtocolException;
  */
 public class AndroidAsyncAssembly extends AsyncAssembly {
     private String preferenceName;
-    private Activity activity;
+    private Context context;
 
     public static final String DEFAULT_PREFERENCE_NAME = "tansloadit_android_sdk_urls";
 
@@ -34,22 +34,22 @@ public class AndroidAsyncAssembly extends AsyncAssembly {
      *
      * @param transloadit {@link AndroidTransloadit} the transloadit client
      * @param listener an implementation of {@link AssemblyProgressListener}
-     * @param activity {@link Activity} the activity where this assembly creation is taking place
+     * @param context {@link Context} the context where this assembly creation is taking place
      */
-    public AndroidAsyncAssembly(AndroidTransloadit transloadit, AssemblyProgressListener listener, Activity activity) {
+    public AndroidAsyncAssembly(AndroidTransloadit transloadit, AssemblyProgressListener listener, Context context) {
         super(transloadit, listener);
-        this.activity = activity;
+        this.context = context;
         setPreferenceName(DEFAULT_PREFERENCE_NAME);
     }
 
     /**
-     * Set the Activity storage preference name
+     * Set the Context storage preference name
      *
      * @param name set the storage preference name
      */
     public void setPreferenceName(String name) {
         preferenceName = name;
-        SharedPreferences pref = activity.getSharedPreferences(preferenceName, 0);
+        SharedPreferences pref = context.getSharedPreferences(preferenceName, 0);
         setTusURLStore(new TusPreferencesURLStore(pref));
     }
 
