@@ -9,7 +9,7 @@ repositories {
 }
 
 android {
-    compileSdkVersion 34
+    compileSdk 34
     defaultConfig {
         minSdkVersion 15
         targetSdkVersion 34
@@ -21,6 +21,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    namespace 'com.transloadit.sdk'
 }
 
 dependencies {
