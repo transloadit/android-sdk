@@ -26,7 +26,7 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.transloadit.sdk:transloadit:0.4.4'
+    implementation 'com.transloadit.sdk:transloadit:1.0.0'
     implementation 'io.tus.android.client:tus-android-client:0.1.10'
     implementation 'io.tus.java.client:tus-java-client:0.4.5'
     implementation 'org.jetbrains:annotations:23.0.0'
