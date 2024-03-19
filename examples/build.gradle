@@ -5,10 +5,10 @@ repositories {
 }
 
 android {
-    compileSdkVersion 33
+    compileSdk 34
     defaultConfig {
         minSdkVersion 15
-        targetSdkVersion 33
+        targetSdkVersion 34
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
@@ -19,11 +19,12 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    namespace 'com.transloadit.examples'
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'androidx.appcompat:appcompat:1.5.1'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.android.support.constraint:constraint-layout:2.0.4'
     implementation 'com.transloadit.sdk:transloadit:0.4.4'
     implementation project(':transloadit-android')
