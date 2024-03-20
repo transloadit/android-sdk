@@ -103,6 +103,7 @@ publishing {
                 version project.getVersion()
                 artifact sourcesJar
                 artifact javadocJar
+                artifact project.layout.buildDirectory.dir('outputs/aar/' + project.name + '-release.aar')
                 pom.withXml {
                     def root = asNode()
                     root.appendNode('description', project.getDescription())
