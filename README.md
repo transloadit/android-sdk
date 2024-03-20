@@ -17,7 +17,7 @@ The JARs can be downloaded manually from [Maven Central](https://search.maven.or
 **Gradle:**
 
 ```groovy
-implementation 'com.transloadit.android.sdk:transloadit-android:0.0.8'
+implementation 'com.transloadit.android.sdk:transloadit-android:0.0.9'
 ```
 
 **Maven:**
@@ -26,7 +26,7 @@ implementation 'com.transloadit.android.sdk:transloadit-android:0.0.8'
 <dependency>
   <groupId>com.transloadit.android.sdk</groupId>
   <artifactId>transloadit-android</artifactId>
-  <version>0.0.8</version>
+  <version>0.0.9</version>
 </dependency>
 ```
 

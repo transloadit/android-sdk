@@ -1,3 +1,8 @@
+### 0.0.9 / 2024-03-20
+
+- Updated dependency for Transloadit Java SDK to 1.0.0
+- This update includes the updated signature authentication method, which is now required for all requests.
+
 ### 0.0.8 / 2023-07-17
 
 - Changing method signatures including Activity to Context in order to make the SDKs usage more flexible.
