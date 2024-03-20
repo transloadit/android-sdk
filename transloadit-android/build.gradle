@@ -103,7 +103,9 @@ publishing {
                 version project.getVersion()
                 artifact sourcesJar
                 artifact javadocJar
-                artifact project.layout.buildDirectory.dir('outputs/aar/transloadit-android-release.aar')
+                artifact (project.layout.buildDirectory.dir('outputs/aar/transloadit-android-release.aar')) {
+                    builtBy assemble
+                }
                 pom.withXml {
                     def root = asNode()
                     root.appendNode('description', project.getDescription())
