@@ -1,3 +1,7 @@
+### 0.0.10 / 2024-03-20
+
+- 0.0.9 has been published without AAR files, this release ships them.
+
 ### 0.0.9 / 2024-03-20
 
 - Updated dependency for Transloadit Java SDK to 1.0.0
