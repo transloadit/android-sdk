@@ -50,10 +50,10 @@ public class SignatureProviderTest {
         // Test all constructor variants
         AndroidTransloadit t1 = new AndroidTransloadit("test_key", provider);
         assertNotNull(t1);
-        assertEquals("test_key", t1.key);
-        assertNull(t1.secret);
+        assertEquals("test_key", t1.getKeyForTesting());
+        assertNull(t1.getSecretForTesting());
         assertEquals(provider, t1.getSignatureProvider());
-        assertTrue(t1.shouldSignRequest);
+        assertTrue(t1.isSigningEnabledForTesting());
 
         AndroidTransloadit t2 = new AndroidTransloadit("test_key", provider, "https://api.example.com");
         assertNotNull(t2);
@@ -72,10 +72,10 @@ public class SignatureProviderTest {
         AndroidTransloadit transloadit = new AndroidTransloadit("test_key", "test_secret");
 
         assertNotNull(transloadit);
-        assertEquals("test_key", transloadit.key);
-        assertEquals("test_secret", transloadit.secret);
+        assertEquals("test_key", transloadit.getKeyForTesting());
+        assertEquals("test_secret", transloadit.getSecretForTesting());
         assertNull(transloadit.getSignatureProvider());
-        assertTrue(transloadit.shouldSignRequest);
+        assertTrue(transloadit.isSigningEnabledForTesting());
     }
 
     /**
@@ -93,12 +93,12 @@ public class SignatureProviderTest {
         transloadit.setSignatureProvider(provider);
 
         assertEquals(provider, transloadit.getSignatureProvider());
-        assertTrue(transloadit.shouldSignRequest);
+        assertTrue(transloadit.isSigningEnabledForTesting());
 
         // Remove provider
         transloadit.setSignatureProvider(null);
         assertNull(transloadit.getSignatureProvider());
-        assertTrue("Secret-based clients should continue signing", transloadit.shouldSignRequest);
+        assertTrue("Secret-based clients should continue signing", transloadit.isSigningEnabledForTesting());
     }
 
     /**
@@ -119,13 +119,13 @@ public class SignatureProviderTest {
      */
     @Test
     public void testAndroidTransloaditWithoutSecret() {
-        AndroidTransloadit transloadit = new AndroidTransloadit("test_key", null, 300, "https://api.example.com");
+        AndroidTransloadit transloadit = new AndroidTransloadit("test_key", (String) null, 300, "https://api.example.com");
 
         assertNotNull(transloadit);
-        assertEquals("test_key", transloadit.key);
-        assertNull(transloadit.secret);
+        assertEquals("test_key", transloadit.getKeyForTesting());
+        assertNull(transloadit.getSecretForTesting());
         assertNull(transloadit.getSignatureProvider());
-        assertFalse(transloadit.shouldSignRequest);
+        assertFalse(transloadit.isSigningEnabledForTesting());
 
         // Enabling signing without provider or secret should fail
         try {

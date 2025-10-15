@@ -12,6 +12,7 @@ import com.transloadit.sdk.exceptions.LocalOperationException;
 import com.transloadit.sdk.exceptions.RequestException;
 import com.transloadit.sdk.response.AssemblyResponse;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -129,8 +130,8 @@ public class SignatureProviderExample {
 
                 // Process results
                 if (response.getStepResult("resize") != null) {
-                    JSONObject resizeResult = response.getStepResult("resize");
-                    Log.i(TAG, "Resize result: " + resizeResult.toString(2));
+                    JSONArray resizeResults = response.getStepResult("resize");
+                    Log.i(TAG, "Resize result: " + resizeResults.toString(2));
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Error processing assembly response", e);
@@ -282,5 +283,3 @@ public class SignatureProviderExample {
         }
     }
 }
-
-

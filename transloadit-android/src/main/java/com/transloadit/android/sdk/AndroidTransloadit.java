@@ -89,6 +89,28 @@ public class AndroidTransloadit extends com.transloadit.sdk.Transloadit {
     }
 
     /**
+     * Internal helper used by tests to inspect the configured API key.
+     */
+    String getKeyForTesting() {
+        return getKeyInternal();
+    }
+
+    /**
+     * Internal helper used by tests to inspect the configured secret.
+     */
+    @Nullable
+    String getSecretForTesting() {
+        return getSecretInternal();
+    }
+
+    /**
+     * Internal helper used by tests to check whether signing is enabled.
+     */
+    boolean isSigningEnabledForTesting() {
+        return isSigningEnabledInternal();
+    }
+
+    /**
      * Determines the current version number of the SDK. This method is called within the constructor
      * of the parent class.
      * @return Version Number as String
