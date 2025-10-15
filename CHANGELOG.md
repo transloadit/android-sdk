@@ -1,3 +1,14 @@
+### 0.1.0 / 2025-10-15
+
+- Added support for external signature generation to improve security ([#19](https://github.com/transloadit/android-sdk/issues/19))
+  - New constructors in `AndroidTransloadit` accepting `SignatureProvider` instead of secret
+  - Enables secure signature generation on backend servers instead of embedding secrets in APK
+  - Prevents secret extraction through APK decompilation
+  - Added comprehensive documentation and examples for signature injection
+  - Added unit tests for signature provider functionality
+- Adopted `com.transloadit.sdk:transloadit:2.1.0` and tus-java-client 0.5.1 to match java-sdk
+- Added Docker-based test harness for reproducible local builds
+
 ### 0.0.10 / 2024-03-20
 
 - 0.0.9 has been published without AAR files, this release ships them.

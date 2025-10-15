@@ -5,6 +5,7 @@ import android.content.Context;
 
 import androidx.annotation.Nullable;
 
+import com.transloadit.sdk.SignatureProvider;
 import com.transloadit.sdk.async.AssemblyProgressListener;
 
 
@@ -14,6 +15,7 @@ import java.util.Properties;
 
 
 public class AndroidTransloadit extends com.transloadit.sdk.Transloadit {
+
     public AndroidTransloadit(String key, @Nullable String secret, long duration, String hostUrl) {
         super(key, secret, duration, hostUrl);
     }
@@ -37,6 +39,49 @@ public class AndroidTransloadit extends com.transloadit.sdk.Transloadit {
      */
     public AndroidTransloadit(String key, String secret) {
         this(key, secret, 5 * 60, DEFAULT_HOST_URL);
+    }
+
+    /**
+     * A new instance to transloadit client without a secret, using external signature generation.
+     *
+     * <p>This constructor should be used when you want to generate signatures on your backend
+     * server instead of including the secret key in your Android application. This approach
+     * significantly improves security by preventing the secret from being extracted from the APK.</p>
+     *
+     * @param key User's transloadit key
+     * @param signatureProvider Provider for generating signatures externally
+     * @param duration for how long (in seconds) the request should be valid
+     * @param hostUrl the host url to the transloadit service
+     */
+    public AndroidTransloadit(String key, SignatureProvider signatureProvider, long duration, String hostUrl) {
+        super(key, signatureProvider, duration, hostUrl);
+    }
+
+    /**
+     * A new instance to transloadit client without a secret, using external signature generation.
+     *
+     * <p>This constructor should be used when you want to generate signatures on your backend
+     * server instead of including the secret key in your Android application.</p>
+     *
+     * @param key User's transloadit key
+     * @param signatureProvider Provider for generating signatures externally
+     * @param hostUrl the host url to the transloadit service
+     */
+    public AndroidTransloadit(String key, SignatureProvider signatureProvider, String hostUrl) {
+        this(key, signatureProvider, 5 * 60, hostUrl);
+    }
+
+    /**
+     * A new instance to transloadit client without a secret, using external signature generation.
+     *
+     * <p>This constructor should be used when you want to generate signatures on your backend
+     * server instead of including the secret key in your Android application.</p>
+     *
+     * @param key User's transloadit key
+     * @param signatureProvider Provider for generating signatures externally
+     */
+    public AndroidTransloadit(String key, SignatureProvider signatureProvider) {
+        this(key, signatureProvider, 5 * 60, DEFAULT_HOST_URL);
     }
 
     public AndroidAsyncAssembly newAssembly(AssemblyProgressListener listener, Context context) {

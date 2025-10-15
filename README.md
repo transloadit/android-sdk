@@ -17,7 +17,7 @@ The JARs can be downloaded manually from [Maven Central](https://search.maven.or
 **Gradle:**
 
 ```groovy
-implementation 'com.transloadit.android.sdk:transloadit-android:0.0.10'
+implementation 'com.transloadit.android.sdk:transloadit-android:0.1.0'
 ```
 
 **Maven:**
@@ -26,13 +26,78 @@ implementation 'com.transloadit.android.sdk:transloadit-android:0.0.10'
 <dependency>
   <groupId>com.transloadit.android.sdk</groupId>
   <artifactId>transloadit-android</artifactId>
-  <version>0.0.10</version>
+  <version>0.1.0</version>
 </dependency>
 ```
 
+> ℹ️ Signature-based authentication requires `com.transloadit.sdk:transloadit` version **2.1.0** or newer. When developing locally alongside the Java SDK, place both repositories next to each other (`../java-sdk`) and the Gradle build will automatically use the local java-sdk project via dependency substitution.
+
 ## Usage
 
-All interactions with the SDK begin with the `com.transloadit.android.sdk.Transloadit` class.
+All interactions with the SDK begin with the `com.transloadit.android.sdk.AndroidTransloadit` class.
+
+### Authentication Methods
+
+The SDK supports two authentication methods:
+
+#### 1. Traditional Authentication (with Secret Key)
+
+⚠️ **Security Warning**: Including your secret key in the Android app is a security risk as APK files can be decompiled to extract secrets. Use this method only for development or internal apps.
+
+```java
+AndroidTransloadit transloadit = new AndroidTransloadit("YOUR_KEY", "YOUR_SECRET");
+```
+
+#### 2. Signature Authentication (Recommended for Production)
+
+For production apps, we strongly recommend using external signature generation. This keeps your secret key on your backend server, preventing it from being extracted from the APK.
+
+```java
+// Create a signature provider that fetches signatures from your backend
+SignatureProvider signatureProvider = new SignatureProvider() {
+    @Override
+    public String generateSignature(String paramsJson) throws Exception {
+        // Make a request to your backend to sign the parameters
+        // This is just an example - implement according to your backend API
+        HttpURLConnection conn = (HttpURLConnection) new URL("https://your-backend.com/sign").openConnection();
+        conn.setRequestMethod("POST");
+        conn.setDoOutput(true);
+        conn.getOutputStream().write(paramsJson.getBytes());
+
+        // Read the signature from your backend's response
+        BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+        String signature = reader.readLine();
+        reader.close();
+
+        return signature; // Should return something like "sha384:..."
+    }
+};
+
+// Initialize Transloadit with the signature provider
+AndroidTransloadit transloadit = new AndroidTransloadit("YOUR_KEY", signatureProvider);
+```
+
+Your backend should implement an endpoint that:
+
+1. Validates the request (authentication, rate limiting, etc.)
+2. Signs the parameters using your Transloadit secret
+3. Returns the signature
+
+Example backend implementation (Node.js):
+
+```javascript
+const crypto = require('crypto')
+
+app.post('/sign', authenticate, (req, res) => {
+  const paramsJson = req.body
+  const signature = crypto
+    .createHmac('sha384', process.env.TRANSLOADIT_SECRET)
+    .update(Buffer.from(paramsJson, 'utf-8'))
+    .digest('hex')
+
+  res.send(`sha384:${signature}`)
+})
+```
 
 ### Create an Assembly
 
@@ -108,6 +173,16 @@ public class MainActivity extends AppCompatActivity {
 ## Example
 
 For fully working examples take a look at [examples/](https://github.com/transloadit/android-sdk/tree/main/examples).
+
+## Development
+
+Run the unit test suite inside Docker to avoid installing the Android toolchain locally:
+
+```bash
+./scripts/test-in-docker.sh
+```
+
+The script builds a lightweight image with the necessary Android command-line tools, caches Gradle downloads inside `.android-docker/`, and runs `./gradlew test` with the SDK preconfigured. If you use Colima, the script will automatically fall back to `~/.colima/default/docker.sock` when the default Docker socket is unavailable.
 
 ## Documentation
 

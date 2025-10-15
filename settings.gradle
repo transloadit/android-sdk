@@ -1,2 +1,11 @@
 include ':transloadit-android'
 include ':examples'
+
+def javaSdkDir = file("../java-sdk")
+if (javaSdkDir.exists()) {
+    includeBuild(javaSdkDir) {
+        dependencySubstitution {
+            substitute(module("com.transloadit.sdk:transloadit")).using(project(":"))
+        }
+    }
+}
