@@ -8,4 +8,11 @@ if (javaSdkDir.exists()) {
             substitute(module("com.transloadit.sdk:transloadit")).using(project(":"))
         }
     }
+} else {
+    sourceControl {
+        gitRepository("https://github.com/transloadit/java-sdk.git") {
+            producesModule("com.transloadit.sdk:transloadit")
+            defaultBranch = "sig-injection"
+        }
+    }
 }
