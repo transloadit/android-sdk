@@ -6,7 +6,12 @@ import android.content.Context;
 import androidx.annotation.Nullable;
 
 import com.transloadit.sdk.SignatureProvider;
-import com.transloadit.sdk.async.AssemblyProgressListener;
+
+
+
+
+
+
 
 
 import java.io.IOException;
@@ -84,8 +89,8 @@ public class AndroidTransloadit extends com.transloadit.sdk.Transloadit {
         this(key, signatureProvider, 5 * 60, DEFAULT_HOST_URL);
     }
 
-    public AndroidAsyncAssembly newAssembly(AssemblyProgressListener listener, Context context) {
-        return new AndroidAsyncAssembly(this, listener, context);
+    public AndroidAssembly newAssembly(AndroidAssemblyListener listener, Context context) {
+        return new AndroidAssembly(this, listener, context);
     }
 
     /**

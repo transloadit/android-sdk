@@ -4,10 +4,10 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.transloadit.android.sdk.AndroidAsyncAssembly;
+import com.transloadit.android.sdk.AndroidAssembly;
+import com.transloadit.android.sdk.AndroidAssemblyListener;
 import com.transloadit.android.sdk.AndroidTransloadit;
 import com.transloadit.sdk.SignatureProvider;
-import com.transloadit.sdk.async.AssemblyProgressListener;
 import com.transloadit.sdk.exceptions.LocalOperationException;
 import com.transloadit.sdk.exceptions.RequestException;
 import com.transloadit.sdk.response.AssemblyResponse;
@@ -23,6 +23,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 /**
  * Example demonstrating how to use external signature generation
@@ -107,9 +109,9 @@ public class SignatureProviderExample {
     }
 
     /**
-     * Example AssemblyProgressListener implementation
+     * Example AndroidAssemblyListener implementation
      */
-    static class ExampleAssemblyListener implements AssemblyProgressListener {
+    static class ExampleAssemblyListener implements AndroidAssemblyListener {
         @Override
         public void onUploadFinished() {
             Log.i(TAG, "Upload finished! Waiting for assembly to complete...");
@@ -117,8 +119,10 @@ public class SignatureProviderExample {
 
         @Override
         public void onUploadProgress(long uploadedBytes, long totalBytes) {
-            int progress = (int) ((uploadedBytes * 100) / totalBytes);
-            Log.d(TAG, "Upload progress: " + progress + "%");
+            if (totalBytes > 0) {
+                int progress = (int) ((uploadedBytes * 100) / totalBytes);
+                Log.d(TAG, "Upload progress: " + progress + "%");
+            }
         }
 
         @Override
@@ -160,10 +164,10 @@ public class SignatureProviderExample {
         AndroidTransloadit transloadit = new AndroidTransloadit(TRANSLOADIT_KEY, signatureProvider);
 
         // Create an assembly listener
-        AssemblyProgressListener listener = new ExampleAssemblyListener();
+        AndroidAssemblyListener listener = new ExampleAssemblyListener();
 
         // Create a new assembly
-        AndroidAsyncAssembly assembly = transloadit.newAssembly(listener, context);
+        AndroidAssembly assembly = transloadit.newAssembly(listener, context);
 
         // Add the file to upload
         assembly.addFile(imageFile, "image");
@@ -177,11 +181,13 @@ public class SignatureProviderExample {
         assembly.addStep("resize", "/image/resize", resizeOptions);
 
         // Save the assembly (this will trigger the upload)
+        Future<AssemblyResponse> future = assembly.saveAsync();
         try {
-            assembly.save();
+            future.get();
             Log.i(TAG, "Assembly creation started with external signature generation");
-        } catch (RequestException | LocalOperationException e) {
+        } catch (InterruptedException | ExecutionException e) {
             Log.e(TAG, "Failed to create assembly", e);
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -219,21 +225,18 @@ public class SignatureProviderExample {
                 AndroidTransloadit transloadit = new AndroidTransloadit(TRANSLOADIT_KEY, signatureProvider);
 
                 // Create assembly with progress tracking
-                AndroidAsyncAssembly assembly = transloadit.newAssembly(new AssemblyProgressListener() {
+                AndroidAssembly assembly = transloadit.newAssembly(new AndroidAssemblyListener() {
                     @Override
                     public void onUploadProgress(long uploadedBytes, long totalBytes) {
-                        int progress = (int) ((uploadedBytes * 100) / totalBytes);
-                        publishProgress(progress);
+                        if (totalBytes > 0) {
+                            int progress = (int) ((uploadedBytes * 100) / totalBytes);
+                            publishProgress(progress);
+                        }
                     }
 
                     @Override
                     public void onUploadFinished() {
                         Log.d(TAG, "Upload completed");
-                    }
-
-                    @Override
-                    public void onAssemblyFinished(AssemblyResponse response) {
-                        // Will be handled in onPostExecute
                     }
 
                     @Override
@@ -256,7 +259,8 @@ public class SignatureProviderExample {
                 assembly.addStep("resize", "/image/resize", resizeOptions);
 
                 // Execute assembly
-                return assembly.save();
+                Future<AssemblyResponse> future = assembly.saveAsync();
+                return future.get();
 
             } catch (Exception e) {
                 Log.e(TAG, "Failed to create assembly", e);

@@ -1,3 +1,10 @@
+### 1.0.0 / 2025-10-15
+
+- **Breaking:** Removed dependency on the Java SDK's deprecated `AsyncAssembly` API and introduced a new `AndroidAssembly` wrapper built on the modern SSE-based workflow
+- Added `AndroidAssemblyListener` to replace the old `AssemblyProgressListener`
+- Updated samples, documentation, and tests to use the new asynchronous API
+- Added environment-aware Docker tests plus live assembly integration coverage
+
 ### 0.1.0 / 2025-10-15
 
 - Added support for external signature generation to improve security ([#19](https://github.com/transloadit/android-sdk/issues/19))

@@ -17,7 +17,7 @@ The JARs can be downloaded manually from [Maven Central](https://search.maven.or
 **Gradle:**
 
 ```groovy
-implementation 'com.transloadit.android.sdk:transloadit-android:0.1.0'
+implementation 'com.transloadit.android.sdk:transloadit-android:1.0.0'
 ```
 
 **Maven:**
@@ -26,7 +26,7 @@ implementation 'com.transloadit.android.sdk:transloadit-android:0.1.0'
 <dependency>
   <groupId>com.transloadit.android.sdk</groupId>
   <artifactId>transloadit-android</artifactId>
-  <version>0.1.0</version>
+  <version>1.0.0</version>
 </dependency>
 ```
 
@@ -103,12 +103,12 @@ app.post('/sign', authenticate, (req, res) => {
 
 To create an assembly, you use the `newAssembly` method.
 
-To use this functionality in it's full glory, you need implement the `AssemblyProgressListener`
+To use this functionality in its full glory, implement the `AndroidAssemblyListener`
 interface.
 
 ```java
 
-public class MyAssemblyProgressListener  implements AssemblyProgressListener {
+public class MyAssemblyListener  implements AndroidAssemblyListener {
     @Override
     public void onUploadFinished() {
         System.out.println("upload finished!!! waiting for execution ...");
@@ -152,10 +152,10 @@ public class MainActivity extends AppCompatActivity {
 
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
 
-        AssemblyProgressListener listener = new MyAssemblyProgressListener();
+        AndroidAssemblyListener listener = new MyAssemblyListener();
 
         AndroidTransloadit transloadit = new AndroidTransloadit("key", "secret");
-        AndroidAsyncAssembly assembly = transloadit.newAssembly(listener);
+        AndroidAssembly assembly = transloadit.newAssembly(listener);
         assembly.addFile(new File("path/to/file.jpg"), "file");
 
         Map<String, Object> stepOptions = new HashMap<>();
@@ -164,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
         stepOptions.put("resize_strategy", "pad");
         assembly.addStep("resize", "/image/resize", stepOptions);
 
-        assembly.save();
+        assembly.saveAsync();
     }
 }
 
