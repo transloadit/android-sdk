@@ -59,4 +59,8 @@ if [[ -d "$HOST_JAVA_SDK" ]]; then
   DOCKER_ARGS+=(-v "$HOST_JAVA_SDK":/workspace/../java-sdk)
 fi
 
+if [[ -f .env ]]; then
+  DOCKER_ARGS+=(--env-file "$PWD/.env")
+fi
+
 exec docker run "${DOCKER_ARGS[@]}" "$IMAGE_NAME" bash -lc "$GRADLE_CMD_STRING"
