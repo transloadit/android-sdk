@@ -6,7 +6,7 @@ CACHE_ROOT=.android-docker
 GRADLE_CACHE_DIR="$CACHE_ROOT/gradle"
 HOME_DIR="$CACHE_ROOT/home"
 ANDROID_SDK_ROOT=/opt/android-sdk
-USE_LOCAL_JAVA_SDK="${ANDROID_SDK_USE_LOCAL_JAVA_SDK:-1}"
+USE_LOCAL_JAVA_SDK="${ANDROID_SDK_USE_LOCAL_JAVA_SDK:-0}"
 
 ensure_docker() {
   if ! command -v docker >/dev/null 2>&1; then

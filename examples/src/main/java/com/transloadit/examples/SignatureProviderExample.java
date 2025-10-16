@@ -19,6 +19,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
@@ -35,7 +36,7 @@ import java.util.concurrent.Future;
  * decompilation.
  */
 public class SignatureProviderExample {
-    private static final String TAG = "SignatureProviderExample";
+    private static final String TAG = "SigProviderExample";
 
     // Your backend endpoint that generates signatures
     private static final String BACKEND_SIGN_URL = "https://your-backend.com/api/transloadit/sign";
@@ -195,7 +196,7 @@ public class SignatureProviderExample {
      * Alternative: Using AsyncTask for better UI integration
      */
     public static class CreateAssemblyTask extends AsyncTask<File, Integer, AssemblyResponse> {
-        private final Context context;
+        private final WeakReference<Context> contextRef;
         private final String authToken;
         private final AssemblyTaskListener listener;
 
@@ -206,7 +207,7 @@ public class SignatureProviderExample {
         }
 
         public CreateAssemblyTask(Context context, String authToken, AssemblyTaskListener listener) {
-            this.context = context;
+            this.contextRef = new WeakReference<>(context.getApplicationContext());
             this.authToken = authToken;
             this.listener = listener;
         }
@@ -218,6 +219,12 @@ public class SignatureProviderExample {
             }
 
             try {
+                Context context = contextRef.get();
+                if (context == null) {
+                    Log.w(TAG, "Context reference lost before assembly creation");
+                    return null;
+                }
+
                 // Create signature provider
                 SignatureProvider signatureProvider = new BackendSignatureProvider(BACKEND_SIGN_URL, authToken);
 

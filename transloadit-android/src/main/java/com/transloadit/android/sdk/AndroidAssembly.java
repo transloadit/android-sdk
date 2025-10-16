@@ -12,6 +12,8 @@ import com.transloadit.sdk.response.AssemblyResponse;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -24,7 +26,7 @@ import io.tus.java.client.TusURLStore;
  * Android-friendly Assembly wrapper that runs uploads asynchronously and reports progress via
  * {@link AndroidAssemblyListener} on a background thread.
  */
-public class AndroidAssembly extends Assembly implements AutoCloseable {
+public class AndroidAssembly extends Assembly implements Closeable {
     public static final String DEFAULT_PREFERENCE_NAME = "transloadit_android_sdk_urls";
 
     private final Context context;
@@ -123,7 +125,7 @@ public class AndroidAssembly extends Assembly implements AutoCloseable {
     }
 
     @Override
-    public void close() {
+    public void close() throws IOException {
         executor.shutdownNow();
     }
 }

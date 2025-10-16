@@ -27,28 +27,13 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation('com.transloadit.sdk:transloadit:2.1.0') {
-        version {
-            branch = 'sig-injection'
-        }
-    }
+    implementation 'com.transloadit.sdk:transloadit:2.1.0'
     implementation 'io.tus.android.client:tus-android-client:0.1.10'
     implementation 'io.tus.java.client:tus-java-client:0.5.1'
     implementation 'org.jetbrains:annotations:23.0.0'
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.mockito:mockito-core:4.8.0'
     testImplementation 'org.mock-server:mockserver-junit-rule:5.15.0'
-}
-
-// Workaround for AGP lint limitation with composite builds:
-// AGP's CheckDependenciesLintModelArtifactHandler cannot resolve JAR artifacts from
-// includeBuild() projects. Disabling all lint tasks until java-sdk 2.1.0 is published.
-// See: https://github.com/gradle/gradle/issues/29793 (similar composite build issue)
-// TODO: Remove this when java-sdk 2.1.0 is published to Maven Central
-tasks.configureEach {
-    if (it.name.toLowerCase().contains('lint')) {
-        it.enabled = false
-    }
 }
 
 def config = new ConfigSlurper().parse(new File("${projectDir}/src/main/resources/android-sdk-version/version.properties").toURI().toURL())
