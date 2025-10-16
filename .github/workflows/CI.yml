@@ -13,6 +13,9 @@ on:
 jobs:
   android:
     runs-on: ubuntu-latest
+    env:
+      TRANSLOADIT_KEY: ${{ secrets.TRANSLOADIT_KEY }}
+      TRANSLOADIT_SECRET: ${{ secrets.TRANSLOADIT_SECRET }}
 
     steps:
       - uses: actions/checkout@v4
@@ -29,6 +32,17 @@ jobs:
         run: ./gradlew assemble
       - name: Run Tests
         run: ./gradlew check
+
+      - name: Run Docker E2E tests
+        if: env.TRANSLOADIT_KEY != '' && env.TRANSLOADIT_SECRET != ''
+        env:
+          TRANSLOADIT_KEY: ${{ env.TRANSLOADIT_KEY }}
+          TRANSLOADIT_SECRET: ${{ env.TRANSLOADIT_SECRET }}
+          ANDROID_SDK_USE_LOCAL_JAVA_SDK: '0'
+        run: |
+          printf 'TRANSLOADIT_KEY=%s\nTRANSLOADIT_SECRET=%s\n' "$TRANSLOADIT_KEY" "$TRANSLOADIT_SECRET" > .env
+          ./scripts/test-in-docker.sh clean check
+          rm -f .env
 
   slack-on-failure:
     needs: [android]
