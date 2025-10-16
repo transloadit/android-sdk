@@ -22,12 +22,6 @@ android {
         }
     }
     namespace 'com.transloadit.sdk'
-
-    // Skip lint model generation for now - composite build java-sdk jar path issue
-    // TODO: Remove this when java-sdk 2.1.0 is published to Maven
-    lint {
-        checkReleaseBuilds false
-    }
 }
 
 dependencies {
@@ -46,9 +40,13 @@ dependencies {
     testImplementation 'org.mock-server:mockserver-junit-rule:5.15.0'
 }
 
-// Skip lint entirely until java-sdk is published
+// Workaround for AGP lint limitation with composite builds:
+// AGP's CheckDependenciesLintModelArtifactHandler cannot resolve JAR artifacts from
+// includeBuild() projects. Disabling all lint tasks until java-sdk 2.1.0 is published.
+// See: https://github.com/gradle/gradle/issues/29793 (similar composite build issue)
+// TODO: Remove this when java-sdk 2.1.0 is published to Maven Central
 tasks.configureEach {
-    if (it.name.contains('lint') || it.name.contains('Lint')) {
+    if (it.name.toLowerCase().contains('lint')) {
         it.enabled = false
     }
 }
