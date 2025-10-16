@@ -16,6 +16,7 @@ jobs:
     env:
       TRANSLOADIT_KEY: ${{ secrets.TRANSLOADIT_KEY }}
       TRANSLOADIT_SECRET: ${{ secrets.TRANSLOADIT_SECRET }}
+      ANDROID_SDK_E2E: "true"
 
     steps:
       - uses: actions/checkout@v4
