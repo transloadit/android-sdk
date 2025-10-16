@@ -2,7 +2,10 @@ include ':transloadit-android'
 include ':examples'
 
 def javaSdkDir = file("../java-sdk")
-if (javaSdkDir.exists()) {
+def useLocalJavaSdkEnv = System.getenv("ANDROID_SDK_USE_LOCAL_JAVA_SDK")
+def preferLocalJavaSdk = useLocalJavaSdkEnv == null ? javaSdkDir.exists() : useLocalJavaSdkEnv.equalsIgnoreCase("true") || useLocalJavaSdkEnv == "1"
+
+if (preferLocalJavaSdk && javaSdkDir.exists()) {
     includeBuild(javaSdkDir) {
         dependencySubstitution {
             substitute(module("com.transloadit.sdk:transloadit")).using(project(":"))
@@ -12,7 +15,6 @@ if (javaSdkDir.exists()) {
     sourceControl {
         gitRepository("https://github.com/transloadit/java-sdk.git") {
             producesModule("com.transloadit.sdk:transloadit")
-            defaultBranch = "sig-injection"
         }
     }
 }

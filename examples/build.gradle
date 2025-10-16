@@ -26,8 +26,11 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.android.support.constraint:constraint-layout:2.0.4'
-    implementation 'com.transloadit.sdk:transloadit:0.4.4'
+    implementation('com.transloadit.sdk:transloadit:2.1.0') {
+        version {
+            branch = 'sig-injection'
+        }
+    }
     implementation project(':transloadit-android')
     testImplementation 'junit:junit:4.13.2'
 }
-

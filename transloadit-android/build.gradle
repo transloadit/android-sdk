@@ -22,12 +22,22 @@ android {
         }
     }
     namespace 'com.transloadit.sdk'
+
+    // Skip lint model generation for now - composite build java-sdk jar path issue
+    // TODO: Remove this when java-sdk 2.1.0 is published to Maven
+    lint {
+        checkReleaseBuilds false
+    }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.transloadit.sdk:transloadit:2.1.0'
+    implementation('com.transloadit.sdk:transloadit:2.1.0') {
+        version {
+            branch = 'sig-injection'
+        }
+    }
     implementation 'io.tus.android.client:tus-android-client:0.1.10'
     implementation 'io.tus.java.client:tus-java-client:0.5.1'
     implementation 'org.jetbrains:annotations:23.0.0'
@@ -123,4 +133,3 @@ signing {
     useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
     sign publishing.publications.androidRelease
 }
-

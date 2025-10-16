@@ -6,6 +6,7 @@ CACHE_ROOT=.android-docker
 GRADLE_CACHE_DIR="$CACHE_ROOT/gradle"
 HOME_DIR="$CACHE_ROOT/home"
 ANDROID_SDK_ROOT=/opt/android-sdk
+USE_LOCAL_JAVA_SDK="${ANDROID_SDK_USE_LOCAL_JAVA_SDK:-1}"
 
 ensure_docker() {
   if ! command -v docker >/dev/null 2>&1; then
@@ -64,6 +65,7 @@ DOCKER_ARGS=(\
   --user "$(id -u):$(id -g)"\
   -e ANDROID_SDK_ROOT="$ANDROID_SDK_ROOT"\
   -e ANDROID_HOME="$ANDROID_SDK_ROOT"\
+  -e ANDROID_SDK_USE_LOCAL_JAVA_SDK="$USE_LOCAL_JAVA_SDK"\
   -e GRADLE_USER_HOME=/workspace/$GRADLE_CACHE_DIR\
   -e HOME="$CONTAINER_HOME"\
   -v "$PWD":/workspace\
@@ -78,9 +80,11 @@ if [[ -f .env ]]; then
   DOCKER_ARGS+=(--env-file "$PWD/.env")
 fi
 
-HOST_JAVA_SDK="$(cd "$(dirname "$PWD")" && pwd)/java-sdk"
-if [[ -d "$HOST_JAVA_SDK" ]]; then
-  DOCKER_ARGS+=(-v "$HOST_JAVA_SDK":/workspace/../java-sdk)
+if [[ "$USE_LOCAL_JAVA_SDK" != "0" ]]; then
+  HOST_JAVA_SDK="$(cd "$(dirname "$PWD")" && pwd)/java-sdk"
+  if [[ -d "$HOST_JAVA_SDK" ]]; then
+    DOCKER_ARGS+=(-v "$HOST_JAVA_SDK":/workspace/../java-sdk)
+  fi
 fi
 
 exec docker run "${DOCKER_ARGS[@]}" "$IMAGE_NAME" bash -lc "$RUN_CMD"
