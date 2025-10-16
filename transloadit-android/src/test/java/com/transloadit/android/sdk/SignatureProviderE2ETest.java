@@ -172,9 +172,8 @@ public class SignatureProviderE2ETest {
                 boolean progressSeen = progressLatch.await(2, TimeUnit.MINUTES);
                 if (!progressSeen) {
                     log.accept("Timed out waiting for upload progress");
+                    failWithTimeline("Upload progress not observed", timeline);
                 }
-                assertTrue("Upload progress not observed" + formatTimeline(timeline),
-                        progressSeen);
 
                 assembly.pauseUploads();
                 pauseInvoked.set(true);
@@ -199,9 +198,8 @@ public class SignatureProviderE2ETest {
                 if (!sseSeen) {
                     log.accept("Timed out waiting for SSE events");
                     log.accept("Final assembly payload=" + completed.json());
+                    failWithTimeline("SSE progress not observed", timeline);
                 }
-                assertTrue("SSE progress not observed" + formatTimeline(timeline),
-                        sseSeen);
 
                 JSONObject json = completed.json();
                 assertTrue("Assembly not completed",
@@ -221,7 +219,9 @@ public class SignatureProviderE2ETest {
         assertTrue("Upload finished callback not observed", uploadFinished.get());
         assertTrue("Pause not invoked", pauseInvoked.get());
         assertTrue("Resume not invoked", resumeInvoked.get());
-        assertTrue("SSE events not observed" + formatTimeline(timeline), sseObserved.get());
+        if (!sseObserved.get()) {
+            failWithTimeline("SSE events not observed", timeline);
+        }
     }
 
     private static MockWebServer startSigningServer(String secret) throws IOException {
@@ -365,14 +365,14 @@ public class SignatureProviderE2ETest {
         return isNullOrEmpty(value) ? null : value;
     }
 
-    private static String formatTimeline(List<String> timeline) {
-        if (timeline == null || timeline.isEmpty()) {
-            return "";
+    private static void failWithTimeline(String message, List<String> timeline) {
+        StringBuilder sb = new StringBuilder(message);
+        if (timeline != null && !timeline.isEmpty()) {
+            sb.append("\nTimeline:");
+            for (String entry : timeline) {
+                sb.append("\n  ").append(entry);
+            }
         }
-        StringBuilder sb = new StringBuilder("\nTimeline:");
-        for (String entry : timeline) {
-            sb.append("\n  ").append(entry);
-        }
-        return sb.toString();
+        throw new AssertionError(sb.toString());
     }
 }
