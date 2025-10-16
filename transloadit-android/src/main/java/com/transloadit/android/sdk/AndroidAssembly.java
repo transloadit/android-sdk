@@ -114,12 +114,12 @@ public class AndroidAssembly extends Assembly implements Closeable {
 
             @Override
             public void onAssemblyProgress(org.json.JSONObject progressPerOriginalFile) {
-                // no-op
+                listener.onAssemblyProgress(progressPerOriginalFile);
             }
 
             @Override
             public void onAssemblyResultFinished(JSONArray result) {
-                // no-op
+                listener.onAssemblyResultFinished(result);
             }
         };
     }
