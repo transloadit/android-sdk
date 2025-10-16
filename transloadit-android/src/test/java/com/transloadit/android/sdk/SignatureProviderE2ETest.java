@@ -32,13 +32,18 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -88,10 +93,23 @@ public class SignatureProviderE2ETest {
         AtomicBoolean pauseInvoked = new AtomicBoolean(false);
         AtomicBoolean resumeInvoked = new AtomicBoolean(false);
 
+        List<String> timeline = Collections.synchronizedList(new ArrayList<>());
+        long startMillis = System.currentTimeMillis();
+        Consumer<String> log = message -> {
+            long delta = System.currentTimeMillis() - startMillis;
+            String entry = String.format(Locale.US, "[+%6dms] %s", delta, message);
+            timeline.add(entry);
+            System.out.println("[SignatureProviderE2ETest] " + entry);
+        };
+
         CountDownLatch progressLatch = new CountDownLatch(1);
         CountDownLatch sseLatch = new CountDownLatch(1);
 
+        log.accept("E2E flag=" + e2eEnabled + " key present=" + !isNullOrEmpty(transloaditKey));
+        log.accept("Temp upload path=" + upload.getAbsolutePath() + " size=" + upload.length());
+
         try (MockWebServer signingServer = startSigningServer(transloaditSecret)) {
+            log.accept("Signing server url=" + signingServer.url(SIGNATURE_ENDPOINT));
             SignatureProvider provider = paramsJson ->
                     requestSignature(signingServer.url(SIGNATURE_ENDPOINT).url(), paramsJson);
 
@@ -99,6 +117,7 @@ public class SignatureProviderE2ETest {
                 @Override
                 public void onUploadFinished() {
                     uploadFinished.set(true);
+                    log.accept("Upload finished callback");
                 }
 
                 @Override
@@ -106,6 +125,7 @@ public class SignatureProviderE2ETest {
                     if (totalBytes > 0L && uploadedBytes > 0L) {
                         progressObserved.set(true);
                         progressLatch.countDown();
+                        log.accept(String.format(Locale.US, "Upload progress %.2f%%", 100.0 * uploadedBytes / totalBytes));
                     }
                 }
 
@@ -123,12 +143,14 @@ public class SignatureProviderE2ETest {
                 public void onAssemblyProgress(JSONObject progressPerOriginalFile) {
                     sseObserved.set(true);
                     sseLatch.countDown();
+                    log.accept("Assembly progress SSE: " + progressPerOriginalFile);
                 }
 
                 @Override
                 public void onAssemblyResultFinished(JSONArray result) {
                     sseObserved.set(true);
                     sseLatch.countDown();
+                    log.accept("Assembly result SSE count=" + result.length());
                 }
             };
 
@@ -147,26 +169,39 @@ public class SignatureProviderE2ETest {
                 Future<AssemblyResponse> future = assembly.saveAsync(true);
 
                 // Wait until some bytes are uploaded before pausing
-                assertTrue("Upload progress not observed",
-                        progressLatch.await(2, TimeUnit.MINUTES));
+                boolean progressSeen = progressLatch.await(2, TimeUnit.MINUTES);
+                if (!progressSeen) {
+                    log.accept("Timed out waiting for upload progress");
+                }
+                assertTrue("Upload progress not observed" + formatTimeline(timeline),
+                        progressSeen);
 
                 assembly.pauseUploads();
                 pauseInvoked.set(true);
+                log.accept("Uploads paused");
 
                 Thread.sleep(TimeUnit.SECONDS.toMillis(2));
 
                 assembly.resumeUploads();
                 resumeInvoked.set(true);
+                log.accept("Uploads resumed");
 
                 AssemblyResponse initial = await(future, 5, TimeUnit.MINUTES);
                 assertNotNull("Initial assembly response missing", initial);
                 assertNotNull("Assembly ID missing", initial.getId());
+                log.accept("Initial assembly id=" + initial.getId());
 
                 AssemblyResponse completed = waitForCompletion(transloadit, initial.getId());
                 assertNotNull("Final assembly response missing", completed);
+                log.accept("Completed assembly ok=" + completed.json().optString("ok"));
 
-                assertTrue("SSE progress not observed",
-                        sseLatch.await(2, TimeUnit.MINUTES));
+                boolean sseSeen = sseLatch.await(2, TimeUnit.MINUTES);
+                if (!sseSeen) {
+                    log.accept("Timed out waiting for SSE events");
+                    log.accept("Final assembly payload=" + completed.json());
+                }
+                assertTrue("SSE progress not observed" + formatTimeline(timeline),
+                        sseSeen);
 
                 JSONObject json = completed.json();
                 assertTrue("Assembly not completed",
@@ -186,7 +221,7 @@ public class SignatureProviderE2ETest {
         assertTrue("Upload finished callback not observed", uploadFinished.get());
         assertTrue("Pause not invoked", pauseInvoked.get());
         assertTrue("Resume not invoked", resumeInvoked.get());
-        assertTrue("SSE events not observed", sseObserved.get());
+        assertTrue("SSE events not observed" + formatTimeline(timeline), sseObserved.get());
     }
 
     private static MockWebServer startSigningServer(String secret) throws IOException {
@@ -328,5 +363,16 @@ public class SignatureProviderE2ETest {
 
     private static String firstNonEmpty(String value) {
         return isNullOrEmpty(value) ? null : value;
+    }
+
+    private static String formatTimeline(List<String> timeline) {
+        if (timeline == null || timeline.isEmpty()) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder("\nTimeline:");
+        for (String entry : timeline) {
+            sb.append("\n  ").append(entry);
+        }
+        return sb.toString();
     }
 }
