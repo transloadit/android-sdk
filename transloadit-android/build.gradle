@@ -15,6 +15,17 @@ android {
         targetSdkVersion 34
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
+    testOptions {
+        unitTests.all {
+            testLogging {
+                events 'failed', 'standardOut', 'standardError'
+                exceptionFormat 'full'
+                showCauses true
+                showExceptions true
+                showStackTraces true
+            }
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
