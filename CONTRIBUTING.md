@@ -1,35 +1,47 @@
 # Contributing to the Transloadit Android SDK
 
-This document is put together to provide maintenance hints for the
-[Transloadit Java SDK](https://github.com/transloadit/java-sdk) and
-[Android SDK](https://github.com/transloadit/android-sdk).
+Thanks for your interest in contributing! This document explains how to get set up, run tests, and how releases are produced for the Android library.
+
+## Getting Started
+
+1. Fork the repository and clone your fork.
+2. Install JDK 11+ (CI currently uses JDK 19 via `actions/setup-java`).
+3. Install [Android SDK command line tools](https://developer.android.com/studio#command-tools) if you plan to run Gradle directly outside of Docker.
+4. Install [Docker](https://docs.docker.com/get-docker/) if you want to mirror the CI environment.
+5. Run `./gradlew assemble` to make sure the project builds.
+
+## Running Tests
+
+We rely on standard Gradle tasks and an optional Docker wrapper:
+
+- **Host JVM:** `./gradlew check` runs unit tests for both the library and example app.
+- **Docker (CI parity):** `./scripts/test-in-docker.sh` executes the same Gradle tasks inside the image used in CI. This is helpful before pushing changes to ensure a clean environment.
+
+End-to-end tests hit the live Transloadit API. To enable them locally, create a `.env` file with:
+
+```
+TRANSLOADIT_KEY=your-key
+TRANSLOADIT_SECRET=your-secret
+```
+
+Without these variables the integration tests are skipped automatically.
+
+## Pull Requests
+
+- Keep changes focused. For larger efforts, please open an issue first to discuss the approach.
+- Add or update tests alongside code changes.
+- Run `./gradlew check` (and optionally the docker script) before submitting the PR.
+- Provide context in the PR description, including any manual testing performed.
 
 ## Publishing Releases
 
-At the moment, releases for the Java SDK are done with a
-[GH - Actions job](https://github.com/transloadit/java-sdk/blob/17823ed8d86fd09aded95884e9c4e9a2bb2ea1af/.github/workflows/release.yml).
-The releases are published to
-[Maven-Central](https://search.maven.org/artifact/com.transloadit.sdk/transloadit). As of the time
-of writing, @cdr-chakotay and @Acconut are maintaining the Java-SDK. Here are the steps (_It is
-assumed that you already have your dev environment setup for the Java SDK before attempting to
-release_):
+Releases are handled by the Transloadit maintainers through the [release workflow](./.github/workflows/release.yml), which publishes artifacts to Maven Central under `com.transloadit.android:transloadit-android`.
 
-1. Verify, that the ENV - variables in the GH-Action are matching:
+High-level checklist for maintainers:
 
-- The [Sonatype](https://oss.sonatype.org/) username and
-  password[environment variables](<[https://github.com/transloadit/java-sdk/blob/1da83b8ac34df160bc3edf5f521f146d41533f82/build.gradle#L98-L99](https://github.com/transloadit/java-sdk/blob/17823ed8d86fd09aded95884e9c4e9a2bb2ea1af/build.gradle#L124-L125)](https://github.com/transloadit/java-sdk/blob/17823ed8d86fd09aded95884e9c4e9a2bb2ea1af/build.gradle#L124-L125)](https://github.com/transloadit/java-sdk/blob/17823ed8d86fd09aded95884e9c4e9a2bb2ea1af/build.gradle#L124)>)
+1. Update version information in `transloadit-android/src/main/resources/android-sdk-version/version.properties` and refresh `CHANGELOG.md`.
+2. Merge the release branch into `main`.
+3. Create a git tag matching the new version and draft a GitHub release (include the changelog). Tagging `main` triggers the release workflow.
+4. Wait for Sonatype to finish syncing the artifact (usually within a few hours).
 
-- The
-  [signing enviroment variables](https://github.com/transloadit/java-sdk/blob/17823ed8d86fd09aded95884e9c4e9a2bb2ea1af/build.gradle#L114-L116):
-  GPG Key, the Key ID and the Signing-key's password. You can find the GPG-Key IDs in the
-  [how-tos](https://github.com/transloadit/team-internals/blob/74e417fa2e568cceeb105a1ee1bd942a3273b2fb/_howtos/2021-05-17-handling-relase-signing-keys-javaSDKs.md).
-  The secrets are currently held by @cdr-chakotay and @Acconut.
-
-2. Update the release files where necessary
-   ([here](https://github.com/transloadit/java-sdk/commit/2a87dec02b6caf778a563abe1e008ce9c6ad0480)
-   and
-   [here](https://github.com/transloadit/java-sdk/commit/1f54b3ce4fd202659953fe062985f8c7e43c40b4)).
-3. Create a new Tag, mathching the SDK's semantic version numbers and draft a new release in order
-   to start the release workflow. Please add the Changelog notes to the release. Draft a new release
-   [here](https://github.com/transloadit/java-sdk/releases)
-4. Wait a few hours until Sonatype lists the new release.
+Signing keys and repository credentials are stored as GitHub secrets for the release workflow. If you need access or notice issues with the automation, contact the Transloadit team via issues or the usual support channels.
