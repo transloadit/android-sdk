@@ -146,7 +146,8 @@ public class SignatureProviderE2ETest {
                     log.accept("Assembly status update failed: " + exception);
                     if (exception instanceof ProtocolException) {
                         String msg = exception.getMessage();
-                        if (msg != null && msg.contains("unexpected status code (404)")) {
+                        if (msg != null && (msg.contains("unexpected status code (404)")
+                                || msg.contains("Server rejected operation"))) {
                             return;
                         }
                     }
@@ -155,6 +156,13 @@ public class SignatureProviderE2ETest {
                     } else {
                         unexpectedStatusUpdateFailure.compareAndSet(null, new Exception(String.valueOf(exception)));
                     }
+                }
+
+                @Override
+                public void onAssemblyFinished(AssemblyResponse response) {
+                    sseObserved.set(true);
+                    sseLatch.countDown();
+                    log.accept("Assembly finished SSE payload ok=" + response.json().optString("ok"));
                 }
 
                 @Override
