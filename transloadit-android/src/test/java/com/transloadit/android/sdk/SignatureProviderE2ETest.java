@@ -179,8 +179,9 @@ public class SignatureProviderE2ETest {
                     sseObserved.set(true);
                     sseLatch.countDown();
                     log.accept("Assembly result SSE payload=" + result);
-                    if (result.length() > 0) {
-                        resizeResults.compareAndSet(null, cloneJsonArray(result));
+                    JSONArray extracted = extractStepResultFromSse("resize", result);
+                    if (extracted != null && extracted.length() > 0) {
+                        resizeResults.compareAndSet(null, extracted);
                         resultLatch.countDown();
                     }
                 }
@@ -244,16 +245,11 @@ public class SignatureProviderE2ETest {
                 assertTrue("Assembly not completed",
                         json.optString("ok", "").toUpperCase().contains("ASSEMBLY_COMPLETED"));
 
+                boolean resultSeen = resultLatch.await(2, TimeUnit.MINUTES);
+                assertTrue(resultSeen, "Timed out waiting for resize SSE results");
                 JSONArray results = resizeResults.get();
-                if (results == null || results.length() == 0) {
-                    log.accept("Resize results not received via SSE – polling assembly endpoint");
-                    results = waitForStepResult(transloadit, completed.getSslUrl(), "resize", log);
-                }
-                if (results == null || results.length() == 0) {
-                    log.accept("Resize results still unavailable after polling; continuing without assertion.");
-                } else {
-                    assertTrue("Resize step missing", results.length() > 0);
-                }
+                assertNotNull("Resize SSE payload missing", results);
+                assertTrue("Resize step missing", results.length() > 0);
             }
         } finally {
             if (upload.exists()) {
@@ -274,26 +270,8 @@ public class SignatureProviderE2ETest {
             failWithTimeline("SSE events not observed", timeline);
         }
         if (resultLatch.getCount() > 0) {
-            logTimeline(timeline);
+            failWithTimeline("SSE results not observed", timeline);
         }
-    }
-
-    private static JSONArray waitForStepResult(AndroidTransloadit transloadit, String sslUrl, String stepName, Consumer<String> log)
-            throws InterruptedException, LocalOperationException, RequestException {
-        for (int attempt = 0; attempt < 40; attempt++) {
-            AssemblyResponse response = transloadit.getAssemblyByUrl(sslUrl);
-            JSONObject json = response.json();
-            if (json.optJSONObject("results") != null
-                    && json.optJSONObject("results").has(stepName)) {
-                log.accept("Assembly results now include step '" + stepName + "'");
-                return response.getStepResult(stepName);
-            }
-            if (log != null) {
-                log.accept(String.format(Locale.US, "Waiting for '%s' results (attempt %d)", stepName, attempt + 1));
-            }
-            Thread.sleep(TimeUnit.SECONDS.toMillis(3));
-        }
-        return null;
     }
 
     private static JSONArray cloneJsonArray(JSONArray array) {
@@ -307,13 +285,24 @@ public class SignatureProviderE2ETest {
         }
     }
 
-    private static void logTimeline(List<String> timeline) {
-        if (timeline == null) {
-            return;
+    private static JSONArray extractStepResultFromSse(String expectedStep, JSONArray payload) {
+        if (payload == null || payload.length() < 2) {
+            return null;
         }
-        for (String entry : timeline) {
-            System.out.println("[SignatureProviderE2ETest] " + entry);
+        String stepName = payload.optString(0, null);
+        if (!expectedStep.equals(stepName)) {
+            return null;
         }
+        Object raw = payload.opt(1);
+        if (raw instanceof JSONObject) {
+            JSONArray array = new JSONArray();
+            array.put(raw);
+            return cloneJsonArray(array);
+        }
+        if (raw instanceof JSONArray) {
+            return cloneJsonArray((JSONArray) raw);
+        }
+        return null;
     }
 
     private static MockWebServer startSigningServer(String secret) throws IOException {
