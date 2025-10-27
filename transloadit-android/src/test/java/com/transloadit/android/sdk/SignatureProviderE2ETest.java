@@ -238,7 +238,7 @@ public class SignatureProviderE2ETest {
                 assertTrue("Assembly not completed",
                         json.optString("ok", "").toUpperCase().contains("ASSEMBLY_COMPLETED"));
 
-                JSONArray results = waitForStepResult(transloadit, initial.getId(), "resize", log);
+                JSONArray results = waitForStepResult(transloadit, completed.getSslUrl(), "resize", log);
                 assertTrue("Resize step missing", results != null && results.length() > 0);
             }
         } finally {
@@ -261,10 +261,10 @@ public class SignatureProviderE2ETest {
         }
     }
 
-    private static JSONArray waitForStepResult(AndroidTransloadit transloadit, String id, String stepName, Consumer<String> log)
+    private static JSONArray waitForStepResult(AndroidTransloadit transloadit, String sslUrl, String stepName, Consumer<String> log)
             throws InterruptedException, LocalOperationException, RequestException {
         for (int attempt = 0; attempt < 10; attempt++) {
-            AssemblyResponse response = transloadit.getAssembly(id);
+            AssemblyResponse response = transloadit.getAssemblyByUrl(sslUrl);
             JSONObject json = response.json();
             if (json.optJSONObject("results") != null
                     && json.optJSONObject("results").has(stepName)) {

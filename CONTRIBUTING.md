@@ -41,8 +41,8 @@ High-level checklist for maintainers:
 
 1. Update version information in `transloadit-android/src/main/resources/android-sdk-version/version.properties` and refresh `CHANGELOG.md`.
 2. Merge the release branch into `main`.
-3. Create a git tag for `main` that matches the new version
-4. Publish a GitHub release (include the changelog). This triggers the release workflow.
+3. Create a git tag for `main` that matches the new versions
+4. Publish a GitHub release (include the changelog). This triggers the release workflow. (via the GitHub UI, `gh release creates v1.0.1 --title "v1.0.1" --notes-file <(cat CHANGELOG.md section)`)
 5. Wait for Sonatype to sync the artifact (this can take a few hours).
 
 The required signing keys and credentials are stored as GitHub secrets. If you need access or spot an issue with the release automation, please reach out to the Transloadit team via the issue tracker or support channels.
