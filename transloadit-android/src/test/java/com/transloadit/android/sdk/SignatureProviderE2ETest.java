@@ -98,6 +98,7 @@ public class SignatureProviderE2ETest {
         AtomicReference<Double> lastProgressFraction = new AtomicReference<>(0.0d);
         AtomicReference<Exception> unexpectedStatusUpdateFailure = new AtomicReference<>(null);
         AtomicReference<JSONArray> resizeResults = new AtomicReference<>(null);
+        CountDownLatch resultLatch = new CountDownLatch(1);
 
         List<String> timeline = Collections.synchronizedList(new ArrayList<>());
         long startMillis = System.currentTimeMillis();
@@ -177,9 +178,10 @@ public class SignatureProviderE2ETest {
                 public void onAssemblyResultFinished(JSONArray result) {
                     sseObserved.set(true);
                     sseLatch.countDown();
-                    log.accept("Assembly result SSE count=" + result.length());
+                    log.accept("Assembly result SSE payload=" + result);
                     if (result.length() > 0) {
                         resizeResults.compareAndSet(null, cloneJsonArray(result));
+                        resultLatch.countDown();
                     }
                 }
             };
@@ -271,6 +273,9 @@ public class SignatureProviderE2ETest {
         if (!sseObserved.get()) {
             failWithTimeline("SSE events not observed", timeline);
         }
+        if (resultLatch.getCount() > 0) {
+            logTimeline(timeline);
+        }
     }
 
     private static JSONArray waitForStepResult(AndroidTransloadit transloadit, String sslUrl, String stepName, Consumer<String> log)
@@ -280,6 +285,7 @@ public class SignatureProviderE2ETest {
             JSONObject json = response.json();
             if (json.optJSONObject("results") != null
                     && json.optJSONObject("results").has(stepName)) {
+                log.accept("Assembly results now include step '" + stepName + "'");
                 return response.getStepResult(stepName);
             }
             if (log != null) {
@@ -298,6 +304,15 @@ public class SignatureProviderE2ETest {
             return new JSONArray(array.toString());
         } catch (JSONException e) {
             throw new RuntimeException("Failed to clone JSON array", e);
+        }
+    }
+
+    private static void logTimeline(List<String> timeline) {
+        if (timeline == null) {
+            return;
+        }
+        for (String entry : timeline) {
+            System.out.println("[SignatureProviderE2ETest] " + entry);
         }
     }
 
