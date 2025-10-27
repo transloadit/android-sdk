@@ -238,7 +238,7 @@ public class SignatureProviderE2ETest {
                 assertTrue("Assembly not completed",
                         json.optString("ok", "").toUpperCase().contains("ASSEMBLY_COMPLETED"));
 
-                JSONArray results = completed.getStepResult("resize");
+                JSONArray results = waitForStepResult(transloadit, initial.getId(), "resize", log);
                 assertTrue("Resize step missing", results != null && results.length() > 0);
             }
         } finally {
@@ -259,6 +259,23 @@ public class SignatureProviderE2ETest {
         if (!sseObserved.get()) {
             failWithTimeline("SSE events not observed", timeline);
         }
+    }
+
+    private static JSONArray waitForStepResult(AndroidTransloadit transloadit, String id, String stepName, Consumer<String> log)
+            throws InterruptedException, LocalOperationException, RequestException {
+        for (int attempt = 0; attempt < 10; attempt++) {
+            AssemblyResponse response = transloadit.getAssembly(id);
+            JSONObject json = response.json();
+            if (json.optJSONObject("results") != null
+                    && json.optJSONObject("results").has(stepName)) {
+                return response.getStepResult(stepName);
+            }
+            if (log != null) {
+                log.accept(String.format(Locale.US, "Waiting for '%s' results (attempt %d)", stepName, attempt + 1));
+            }
+            Thread.sleep(TimeUnit.SECONDS.toMillis(3));
+        }
+        return null;
     }
 
     private static MockWebServer startSigningServer(String secret) throws IOException {
