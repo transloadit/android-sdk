@@ -246,7 +246,7 @@ public class SignatureProviderE2ETest {
                         json.optString("ok", "").toUpperCase().contains("ASSEMBLY_COMPLETED"));
 
                 boolean resultSeen = resultLatch.await(2, TimeUnit.MINUTES);
-                assertTrue(resultSeen, "Timed out waiting for resize SSE results");
+                assertTrue("Timed out waiting for resize SSE results", resultSeen);
                 JSONArray results = resizeResults.get();
                 assertNotNull("Resize SSE payload missing", results);
                 assertTrue("Resize step missing", results.length() > 0);
