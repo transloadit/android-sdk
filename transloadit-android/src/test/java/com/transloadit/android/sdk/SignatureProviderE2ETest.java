@@ -97,6 +97,7 @@ public class SignatureProviderE2ETest {
         AtomicBoolean resumeInvoked = new AtomicBoolean(false);
         AtomicReference<Double> lastProgressFraction = new AtomicReference<>(0.0d);
         AtomicReference<Exception> unexpectedStatusUpdateFailure = new AtomicReference<>(null);
+        AtomicReference<JSONArray> resizeResults = new AtomicReference<>(null);
 
         List<String> timeline = Collections.synchronizedList(new ArrayList<>());
         long startMillis = System.currentTimeMillis();
@@ -177,6 +178,9 @@ public class SignatureProviderE2ETest {
                     sseObserved.set(true);
                     sseLatch.countDown();
                     log.accept("Assembly result SSE count=" + result.length());
+                    if (result.length() > 0) {
+                        resizeResults.compareAndSet(null, cloneJsonArray(result));
+                    }
                 }
             };
 
@@ -238,9 +242,13 @@ public class SignatureProviderE2ETest {
                 assertTrue("Assembly not completed",
                         json.optString("ok", "").toUpperCase().contains("ASSEMBLY_COMPLETED"));
 
-                JSONArray results = waitForStepResult(transloadit, completed.getSslUrl(), "resize", log);
+                JSONArray results = resizeResults.get();
                 if (results == null || results.length() == 0) {
-                    log.accept("Resize step results not yet available – continuing (SSE behaviour verified)");
+                    log.accept("Resize results not received via SSE – polling assembly endpoint");
+                    results = waitForStepResult(transloadit, completed.getSslUrl(), "resize", log);
+                }
+                if (results == null || results.length() == 0) {
+                    log.accept("Resize results still unavailable after polling; continuing without assertion.");
                 } else {
                     assertTrue("Resize step missing", results.length() > 0);
                 }
@@ -267,7 +275,7 @@ public class SignatureProviderE2ETest {
 
     private static JSONArray waitForStepResult(AndroidTransloadit transloadit, String sslUrl, String stepName, Consumer<String> log)
             throws InterruptedException, LocalOperationException, RequestException {
-        for (int attempt = 0; attempt < 10; attempt++) {
+        for (int attempt = 0; attempt < 40; attempt++) {
             AssemblyResponse response = transloadit.getAssemblyByUrl(sslUrl);
             JSONObject json = response.json();
             if (json.optJSONObject("results") != null
@@ -280,6 +288,17 @@ public class SignatureProviderE2ETest {
             Thread.sleep(TimeUnit.SECONDS.toMillis(3));
         }
         return null;
+    }
+
+    private static JSONArray cloneJsonArray(JSONArray array) {
+        if (array == null) {
+            return null;
+        }
+        try {
+            return new JSONArray(array.toString());
+        } catch (JSONException e) {
+            throw new RuntimeException("Failed to clone JSON array", e);
+        }
     }
 
     private static MockWebServer startSigningServer(String secret) throws IOException {
