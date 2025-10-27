@@ -30,7 +30,7 @@ implementation 'com.transloadit.android.sdk:transloadit-android:1.0.0'
 </dependency>
 ```
 
-> ℹ️ Signature-based authentication requires `com.transloadit.sdk:transloadit` version **2.1.0** or newer. When developing locally alongside the Java SDK, place both repositories next to each other (`../java-sdk`) and the Gradle build will automatically use the local java-sdk project via dependency substitution.
+> ℹ️ Signature-based authentication requires `com.transloadit.sdk:transloadit` version **2.2.0** or newer. When developing locally alongside the Java SDK, place both repositories next to each other (`../java-sdk`) and the Gradle build will automatically use the local java-sdk project via dependency substitution.
 
 ## Usage
 
