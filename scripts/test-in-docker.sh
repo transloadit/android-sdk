@@ -80,6 +80,16 @@ if [[ -f .env ]]; then
   DOCKER_ARGS+=(--env-file "$PWD/.env")
 fi
 
+E2E_FLAG="${ANDROID_SDK_E2E:-1}"
+DOCKER_ARGS+=(-e "ANDROID_SDK_E2E=$E2E_FLAG")
+
+for var in TRANSLOADIT_HOST TRANSLOADIT_KEY TRANSLOADIT_SECRET ANDROID_SDK_FORCE_RESULTLESS; do
+  value="${!var:-}"
+  if [[ -n "$value" ]]; then
+    DOCKER_ARGS+=(-e "$var=$value")
+  fi
+done
+
 if [[ "$USE_LOCAL_JAVA_SDK" != "0" ]]; then
   HOST_JAVA_SDK="$(cd "$(dirname "$PWD")" && pwd)/java-sdk"
   if [[ -d "$HOST_JAVA_SDK" ]]; then
