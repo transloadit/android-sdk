@@ -1,2 +1,15 @@
 include ':transloadit-android'
 include ':examples'
+
+def javaSdkDir = file("../java-sdk")
+def useLocalJavaSdkEnv = System.getenv("ANDROID_SDK_USE_LOCAL_JAVA_SDK")
+def preferLocalJavaSdk = (useLocalJavaSdkEnv != null) &&
+        (useLocalJavaSdkEnv.equalsIgnoreCase("true") || useLocalJavaSdkEnv == "1")
+
+if (preferLocalJavaSdk && javaSdkDir.exists()) {
+    includeBuild(javaSdkDir) {
+        dependencySubstitution {
+            substitute(module("com.transloadit.sdk:transloadit")).using(project(":"))
+        }
+    }
+}
