@@ -69,17 +69,23 @@ public class SignatureProviderE2ETest {
     private static final String ENV_E2E_FLAG = "ANDROID_SDK_E2E";
     private static final String ENV_KEY = "TRANSLOADIT_KEY";
     private static final String ENV_SECRET = "TRANSLOADIT_SECRET";
+    private static final String ENV_HOST = "TRANSLOADIT_HOST";
+    private static final String ENV_FORCE_RESULTLESS = "ANDROID_SDK_FORCE_RESULTLESS";
     private static final String SIGNATURE_ENDPOINT = "/sign";
 
     private static boolean e2eEnabled;
     private static String transloaditKey;
     private static String transloaditSecret;
+    private static String transloaditHost;
+    private static boolean forceResultless;
 
     @BeforeClass
     public static void loadEnv() {
         e2eEnabled = parseBoolean(System.getenv(ENV_E2E_FLAG));
         transloaditKey = firstNonEmpty(System.getenv(ENV_KEY));
         transloaditSecret = firstNonEmpty(System.getenv(ENV_SECRET));
+        transloaditHost = firstNonEmpty(System.getenv(ENV_HOST));
+        forceResultless = parseBoolean(System.getenv(ENV_FORCE_RESULTLESS));
     }
 
     @Test
@@ -115,6 +121,14 @@ public class SignatureProviderE2ETest {
 
         log.accept("E2E flag=" + e2eEnabled + " key present=" + !isNullOrEmpty(transloaditKey));
         log.accept("Temp upload path=" + upload.getAbsolutePath() + " size=" + upload.length());
+        if (transloaditHost != null) {
+            log.accept("Using host override=" + transloaditHost);
+        } else {
+            log.accept("Using default host=" + com.transloadit.sdk.Transloadit.DEFAULT_HOST_URL);
+        }
+        if (forceResultless) {
+            log.accept("Force resultless mode enabled via " + ENV_FORCE_RESULTLESS);
+        }
 
         try (MockWebServer signingServer = startSigningServer(transloaditSecret)) {
             log.accept("Signing server url=" + signingServer.url(SIGNATURE_ENDPOINT));
@@ -188,7 +202,9 @@ public class SignatureProviderE2ETest {
                 }
             };
 
-            AndroidTransloadit transloadit = new AndroidTransloadit(transloaditKey, provider);
+            AndroidTransloadit transloadit = transloaditHost != null
+                    ? new AndroidTransloadit(transloaditKey, provider, transloaditHost)
+                    : new AndroidTransloadit(transloaditKey, provider);
 
             try (AndroidAssembly assembly = transloadit.newAssembly(listener, context)) {
                 assembly.addFile(upload, "image");
@@ -198,6 +214,9 @@ public class SignatureProviderE2ETest {
                 resize.put("height", 32);
                 resize.put("resize_strategy", "fit");
                 resize.put("format", "jpg");
+                if (forceResultless) {
+                    resize.put("result", Boolean.FALSE);
+                }
                 assembly.addStep("resize", "/image/resize", resize);
 
                 Future<AssemblyResponse> future = assembly.saveAsync(true);
