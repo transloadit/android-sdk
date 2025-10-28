@@ -15,6 +15,7 @@ import com.transloadit.sdk.response.AssemblyResponse;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.BufferedReader;
@@ -119,68 +120,76 @@ public class AndroidAssemblyUploadWorker extends Worker {
         };
 
         AndroidAssembly assembly = transloadit.newAssembly(listener, getApplicationContext());
-        assembly.useDirectCallbacks();
-        if (config.getPreferenceName() != null) {
-            assembly.setPreferenceName(config.getPreferenceName());
-        }
-
-        List<AndroidAssemblyWorkConfig.FileSpec> files = config.getFiles();
-        for (AndroidAssemblyWorkConfig.FileSpec spec : files) {
-            File file = new File(spec.getPath());
-            if (!file.exists()) {
-                return Result.failure(new Data.Builder()
-                        .putString("error", "File not found: " + spec.getPath())
-                        .build());
-            }
-            assembly.addFile(file, spec.getField());
-        }
-
         try {
-            AndroidAssemblyWorkConfig.applyParamsToAssembly(assembly, config.getParams());
-        } catch (Exception e) {
-            return Result.failure(new Data.Builder().putString("error", e.getMessage()).build());
-        }
-
-        Future<AssemblyResponse> future = assembly.saveAsync(config.isResumable());
-        AssemblyResponse initial;
-        try {
-            initial = future.get(config.getUploadTimeoutMillis(), TimeUnit.MILLISECONDS);
-        } catch (ExecutionException executionException) {
-            Throwable cause = executionException.getCause();
-            if (cause instanceof Exception) {
-                completionError.compareAndSet(null, (Exception) cause);
+            assembly.useDirectCallbacks();
+            if (config.getPreferenceName() != null) {
+                assembly.setPreferenceName(config.getPreferenceName());
             }
-            return handleFailure(completionError.get());
-        } catch (Exception e) {
-            completionError.compareAndSet(null, e);
-            return handleFailure(e);
-        }
 
-        if (config.shouldWaitForCompletion()) {
+            List<AndroidAssemblyWorkConfig.FileSpec> files = config.getFiles();
+            for (AndroidAssemblyWorkConfig.FileSpec spec : files) {
+                File file = new File(spec.getPath());
+                if (!file.exists()) {
+                    return Result.failure(new Data.Builder()
+                            .putString("error", "File not found: " + spec.getPath())
+                            .build());
+                }
+                assembly.addFile(file, spec.getField());
+            }
+
             try {
-                boolean finished = completionLatch.await(config.getCompletionTimeoutMillis(), TimeUnit.MILLISECONDS);
-                if (!finished) {
+                AndroidAssemblyWorkConfig.applyParamsToAssembly(assembly, config.getParams());
+            } catch (Exception e) {
+                return Result.failure(new Data.Builder().putString("error", e.getMessage()).build());
+            }
+
+            Future<AssemblyResponse> future = assembly.saveAsync(config.isResumable());
+            AssemblyResponse initial;
+            try {
+                initial = future.get(config.getUploadTimeoutMillis(), TimeUnit.MILLISECONDS);
+            } catch (ExecutionException executionException) {
+                Throwable cause = executionException.getCause();
+                if (cause instanceof Exception) {
+                    completionError.compareAndSet(null, (Exception) cause);
+                }
+                return handleFailure(completionError.get());
+            } catch (Exception e) {
+                completionError.compareAndSet(null, e);
+                return handleFailure(e);
+            }
+
+            if (config.shouldWaitForCompletion()) {
+                try {
+                    boolean finished = completionLatch.await(config.getCompletionTimeoutMillis(), TimeUnit.MILLISECONDS);
+                    if (!finished) {
+                        return Result.retry();
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                     return Result.retry();
                 }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                return Result.retry();
+            }
+
+            Exception completionException = completionError.get();
+            if (completionException != null) {
+                return handleFailure(completionException);
+            }
+
+            AssemblyResponse finalResponse = completionResponse.get() != null ? completionResponse.get() : initial;
+            JSONObject json = finalResponse.json();
+            Data output = new Data.Builder()
+                    .putString(OUTPUT_ASSEMBLY_ID, finalResponse.getId())
+                    .putString(OUTPUT_ASSEMBLY_URL, json.optString("assembly_url"))
+                    .putString(OUTPUT_SSL_URL, finalResponse.getSslUrl())
+                    .build();
+            return Result.success(output);
+        } finally {
+            try {
+                assembly.close();
+            } catch (IOException ignored) {
+                // Best effort to terminate executor; ignore close failures.
             }
         }
-
-        Exception completionException = completionError.get();
-        if (completionException != null) {
-            return handleFailure(completionException);
-        }
-
-        AssemblyResponse finalResponse = completionResponse.get() != null ? completionResponse.get() : initial;
-        JSONObject json = finalResponse.json();
-        Data output = new Data.Builder()
-                .putString(OUTPUT_ASSEMBLY_ID, finalResponse.getId())
-                .putString(OUTPUT_ASSEMBLY_URL, json.optString("assembly_url"))
-                .putString(OUTPUT_SSL_URL, finalResponse.getSslUrl())
-                .build();
-        return Result.success(output);
     }
 
     /**
@@ -229,14 +238,22 @@ public class AndroidAssemblyUploadWorker extends Worker {
 
             int code = connection.getResponseCode();
             InputStream stream = code >= 200 && code < 300 ? connection.getInputStream() : connection.getErrorStream();
-            String response;
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, UTF8))) {
-                StringBuilder sb = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    sb.append(line);
+            String response = "";
+            try {
+                if (stream != null) {
+                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, UTF8))) {
+                        StringBuilder sb = new StringBuilder();
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            sb.append(line);
+                        }
+                        response = sb.toString();
+                    }
+                } else if (code < 200 || code >= 300) {
+                    throw new RequestException("Signature provider returned status " + code + " with empty body");
+                } else {
+                    throw new RequestException("Signature provider response missing body");
                 }
-                response = sb.toString();
             } finally {
                 connection.disconnect();
             }
