@@ -4,6 +4,7 @@
 
 - **Breaking:** Removed dependency on the Java SDK's deprecated `AsyncAssembly` API and introduced a new `AndroidAssembly` wrapper built on the modern SSE-based workflow
 - **Breaking:** SharedPreferences backing resumable uploads now uses `transloadit_android_sdk_urls` (previously typo’d `tansloadit_android_sdk_urls`). Existing persisted tus entries will need manual migration if backward compatibility is required.
+- **Breaking:** Building the SDK now requires JDK 17+. Published AARs still target Java 11 bytecode so consuming apps can desugar on older toolchains.
 - Upgrade dependency to `com.transloadit.sdk:transloadit:2.2.4` to align with the latest Java SDK release and pick up the simplified SSE handling.
 - Keep the Android Docker and CI parity harness aligned with the Java SDK release that ships the stabilized SSE behaviour, ensuring both suites exercise the same SSE fixtures.
 - Default `AndroidAssembly` callbacks to the Android main thread and add opt-in APIs for background/custom executors.

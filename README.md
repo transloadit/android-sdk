@@ -10,6 +10,11 @@ An **Android** Integration for [Transloadit](https://transloadit.com)'s file upl
 
 This is an **Android** SDK to make it easy to talk to the [Transloadit](https://transloadit.com) REST API.
 
+## Requirements
+
+- Build tooling: JDK 17 or newer (we test on JDK 17 and 21 via Gradle/Docker).
+- Runtime bytecode: the published AAR targets Java 11, so consuming apps can desugar on older toolchains.
+
 ## Install
 
 The JARs can be downloaded manually from [Maven Central](https://search.maven.org/artifact/com.transloadit.android.sdk/transloadit-android).
