@@ -194,9 +194,9 @@ public class AndroidAssemblyUploadWorker extends Worker {
             if ("POST".equals(httpMethod) || "PUT".equals(httpMethod)) {
                 connection.setDoOutput(true);
                 connection.setRequestProperty("Content-Type", "application/json");
-            try (OutputStream os = new BufferedOutputStream(connection.getOutputStream())) {
-                os.write(paramsJson.getBytes(UTF8));
-            }
+                try (OutputStream os = new BufferedOutputStream(connection.getOutputStream())) {
+                    os.write(paramsJson.getBytes(UTF8));
+                }
             }
 
             int code = connection.getResponseCode();
