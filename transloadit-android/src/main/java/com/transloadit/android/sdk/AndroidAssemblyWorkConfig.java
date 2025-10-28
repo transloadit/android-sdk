@@ -330,17 +330,27 @@ public final class AndroidAssemblyWorkConfig {
             return this;
         }
 
-        public Builder signatureProvider(@NonNull String url) {
+    /**
+     * Configures an external signature provider endpoint. When specified, {@link AndroidAssemblyUploadWorker}
+     * will fetch signatures over HTTP instead of using a locally supplied secret.
+     */
+    public Builder signatureProvider(@NonNull String url) {
             this.signatureProviderUrl = Objects.requireNonNull(url, "url");
             return this;
         }
 
-        public Builder signatureProviderMethod(@NonNull String method) {
+    /**
+     * Overrides the HTTP method used for the signature provider request. Defaults to {@code POST}.
+     */
+    public Builder signatureProviderMethod(@NonNull String method) {
             this.signatureProviderMethod = Objects.requireNonNull(method, "method").toUpperCase();
             return this;
         }
 
-        public Builder addSignatureProviderHeader(@NonNull String key, @NonNull String value) {
+    /**
+     * Adds a header that will be included when contacting the external signature provider.
+     */
+    public Builder addSignatureProviderHeader(@NonNull String key, @NonNull String value) {
             this.signatureProviderHeaders.put(Objects.requireNonNull(key, "key"), Objects.requireNonNull(value, "value"));
             return this;
         }

@@ -155,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
         AndroidAssemblyListener listener = new MyAssemblyListener();
 
         AndroidTransloadit transloadit = new AndroidTransloadit("key", "secret");
-        AndroidAssembly assembly = transloadit.newAssembly(listener);
+        AndroidAssembly assembly = transloadit.newAssembly(listener, this /* activity context */);
         assembly.addFile(new File("path/to/file.jpg"), "file");
 
         Map<String, Object> stepOptions = new HashMap<>();
@@ -187,6 +187,19 @@ assembly.useDirectCallbacks(); // run callbacks on the calling thread
 - Tests, CI, and examples now execute against the bundled `chameleon.jpg` fixture and require `result: true` on resize steps so SSE result payloads arrive consistently.
 - The SDK depends on `com.transloadit.sdk:transloadit:2.2.4` or newer. Ensure any overrides or local builds are upgraded in lockstep.
 - Persisted tus uploads now live under the SharedPreferences name `transloadit_android_sdk_urls`. If you upgrade from 0.x and rely on resuming uploads saved under the typo’d `tansloadit_android_sdk_urls`, plan a manual migration.
+  ```java
+  SharedPreferences legacy = context.getSharedPreferences("tansloadit_android_sdk_urls", Context.MODE_PRIVATE);
+  SharedPreferences modern = context.getSharedPreferences(AndroidAssembly.DEFAULT_PREFERENCE_NAME, Context.MODE_PRIVATE);
+  if (!legacy.getAll().isEmpty()) {
+      SharedPreferences.Editor editor = modern.edit();
+      for (Map.Entry<String, ?> entry : legacy.getAll().entrySet()) {
+          editor.putString(entry.getKey(), String.valueOf(entry.getValue()));
+      }
+      editor.apply();
+      legacy.edit().clear().apply(); // optional: clean up
+  }
+  ```
+  Run this once at app start to preserve any paused uploads created by pre-1.0 builds.
 
 ## Resumable uploads & WorkManager
 
