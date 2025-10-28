@@ -22,7 +22,7 @@ The JARs can be downloaded manually from [Maven Central](https://search.maven.or
 **Gradle:**
 
 ```groovy
-implementation 'com.transloadit.android.sdk:transloadit-android:1.0.0'
+implementation 'com.transloadit.android.sdk:transloadit-android:0.2.0'
 ```
 
 **Maven:**
@@ -31,7 +31,7 @@ implementation 'com.transloadit.android.sdk:transloadit-android:1.0.0'
 <dependency>
   <groupId>com.transloadit.android.sdk</groupId>
   <artifactId>transloadit-android</artifactId>
-  <version>1.0.0</version>
+  <version>0.2.0</version>
 </dependency>
 ```
 
@@ -183,7 +183,7 @@ assembly.useDirectCallbacks(); // run callbacks on the calling thread
 // or provide any Executor: assembly.setListenerCallbackExecutor(Executors.newSingleThreadExecutor());
 ```
 
-## Migration guide (0.x → 1.0)
+## Migration guide (0.x → 0.2)
 
 - Replace `AndroidAsyncAssembly` with the new `AndroidAssembly` wrapper. It returns a `Future` from `saveAsync()` and reports lifecycle events through `AndroidAssemblyListener`.
 - Update listeners: `AssemblyProgressListener` and friends were removed. Implement `AndroidAssemblyListener` instead, which exposes upload progress, SSE results, and completion/error hooks.
