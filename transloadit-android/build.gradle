@@ -16,13 +16,16 @@ android {
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
     testOptions {
-        unitTests.all {
-            testLogging {
-                events 'failed', 'standardOut', 'standardError'
-                exceptionFormat 'full'
-                showCauses true
-                showExceptions true
-                showStackTraces true
+        unitTests {
+            includeAndroidResources = true
+            all {
+                testLogging {
+                    events 'failed', 'standardOut', 'standardError'
+                    exceptionFormat 'full'
+                    showCauses true
+                    showExceptions true
+                    showStackTraces true
+                }
             }
         }
     }
@@ -31,6 +34,10 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
     namespace 'com.transloadit.sdk'
 }
