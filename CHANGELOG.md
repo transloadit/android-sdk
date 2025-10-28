@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0 / TO BE RELEASED
+## 0.2.0 / 2025-10-28
 
 Below 1.0 SemVer allows us to make breaking changes, and we have shipped a number of them in this release, please review carefully.
 
