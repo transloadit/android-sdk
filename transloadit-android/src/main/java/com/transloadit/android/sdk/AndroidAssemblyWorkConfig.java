@@ -15,6 +15,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -29,6 +30,9 @@ public final class AndroidAssemblyWorkConfig {
 
     private final String authKey;
     private final String authSecret;
+    private final String signatureProviderUrl;
+    private final String signatureProviderMethod;
+    private final Map<String, String> signatureProviderHeaders;
     private final String hostUrl;
     private final boolean resumable;
     private final boolean waitForCompletion;
@@ -49,6 +53,9 @@ public final class AndroidAssemblyWorkConfig {
         this.preferenceName = builder.preferenceName;
         this.params = builder.params == null ? new JSONObject() : builder.params;
         this.files = Collections.unmodifiableList(new ArrayList<>(builder.files));
+        this.signatureProviderUrl = builder.signatureProviderUrl;
+        this.signatureProviderMethod = builder.signatureProviderMethod;
+        this.signatureProviderHeaders = Collections.unmodifiableMap(new LinkedHashMap<>(builder.signatureProviderHeaders));
     }
 
     public String getAuthKey() {
@@ -57,6 +64,20 @@ public final class AndroidAssemblyWorkConfig {
 
     public String getAuthSecret() {
         return authSecret;
+    }
+
+    @Nullable
+    public String getSignatureProviderUrl() {
+        return signatureProviderUrl;
+    }
+
+    @Nullable
+    public String getSignatureProviderMethod() {
+        return signatureProviderMethod;
+    }
+
+    public Map<String, String> getSignatureProviderHeaders() {
+        return signatureProviderHeaders;
     }
 
     public String getHostUrl() {
@@ -102,7 +123,9 @@ public final class AndroidAssemblyWorkConfig {
             JSONObject json = new JSONObject();
             json.put("version", CONFIG_VERSION);
             json.put("authKey", authKey);
-            json.put("authSecret", authSecret);
+            if (authSecret != null) {
+                json.put("authSecret", authSecret);
+            }
             json.put("hostUrl", hostUrl);
             json.put("resumable", resumable);
             json.put("waitForCompletion", waitForCompletion);
@@ -115,6 +138,17 @@ public final class AndroidAssemblyWorkConfig {
                 fileArray.put(spec.toJson());
             }
             json.put("files", fileArray);
+            if (signatureProviderUrl != null) {
+                JSONObject sig = new JSONObject();
+                sig.put("url", signatureProviderUrl);
+                sig.put("method", signatureProviderMethod);
+                JSONObject headers = new JSONObject();
+                for (Map.Entry<String, String> entry : signatureProviderHeaders.entrySet()) {
+                    headers.put(entry.getKey(), entry.getValue());
+                }
+                sig.put("headers", headers);
+                json.put("signatureProvider", sig);
+            }
             return json;
         } catch (JSONException e) {
             throw new IllegalStateException("Failed to serialize work config", e);
@@ -137,7 +171,10 @@ public final class AndroidAssemblyWorkConfig {
             if (!CONFIG_VERSION.equals(version)) {
                 throw new IllegalArgumentException("Unsupported config version: " + version);
             }
-            Builder builder = new Builder(json.getString("authKey"), json.getString("authSecret"));
+            Builder builder = new Builder(json.getString("authKey"));
+            if (json.has("authSecret")) {
+                builder.authSecret(json.getString("authSecret"));
+            }
             String host = json.optString("hostUrl", null);
             if (host != null && !host.isEmpty()) {
                 builder.hostUrl(host);
@@ -156,6 +193,19 @@ public final class AndroidAssemblyWorkConfig {
                 for (int i = 0; i < filesArray.length(); i++) {
                     JSONObject item = filesArray.getJSONObject(i);
                     builder.addFile(new File(item.getString("path")), item.getString("field"));
+                }
+            }
+            JSONObject sig = json.optJSONObject("signatureProvider");
+            if (sig != null) {
+                builder.signatureProvider(sig.getString("url"));
+                builder.signatureProviderMethod(sig.optString("method", "POST"));
+                JSONObject headers = sig.optJSONObject("headers");
+                if (headers != null) {
+                    Iterator<String> headerKeys = headers.keys();
+                    while (headerKeys.hasNext()) {
+                        String key = headerKeys.next();
+                        builder.addSignatureProviderHeader(key, headers.optString(key, ""));
+                    }
                 }
             }
             return builder.build();
@@ -177,7 +227,13 @@ public final class AndroidAssemblyWorkConfig {
     }
 
     public static Builder newBuilder(@NonNull String authKey, @NonNull String authSecret) {
-        return new Builder(authKey, authSecret);
+        Builder builder = new Builder(authKey);
+        builder.authSecret(authSecret);
+        return builder;
+    }
+
+    public static Builder newBuilder(@NonNull String authKey) {
+        return new Builder(authKey);
     }
 
     public static final class Builder {
@@ -185,7 +241,7 @@ public final class AndroidAssemblyWorkConfig {
         static final long DEFAULT_UPLOAD_TIMEOUT_MS = TimeUnit.MINUTES.toMillis(15);
 
         private final String authKey;
-        private final String authSecret;
+        private String authSecret;
         private String hostUrl = AndroidTransloadit.DEFAULT_HOST_URL;
         private boolean resumable = true;
         private boolean waitForCompletion = true;
@@ -194,10 +250,17 @@ public final class AndroidAssemblyWorkConfig {
         private String preferenceName = AndroidAssembly.DEFAULT_PREFERENCE_NAME;
         private JSONObject params;
         private final List<FileSpec> files = new ArrayList<>();
+        private String signatureProviderUrl;
+        private String signatureProviderMethod = "POST";
+        private final Map<String, String> signatureProviderHeaders = new LinkedHashMap<>();
 
-        private Builder(String authKey, String authSecret) {
+        private Builder(String authKey) {
             this.authKey = Objects.requireNonNull(authKey, "authKey");
-            this.authSecret = Objects.requireNonNull(authSecret, "authSecret");
+        }
+
+        public Builder authSecret(@Nullable String authSecret) {
+            this.authSecret = authSecret;
+            return this;
         }
 
         public Builder hostUrl(@Nullable String hostUrl) {
@@ -239,17 +302,17 @@ public final class AndroidAssemblyWorkConfig {
         }
 
         public Builder params(@Nullable JSONObject params) {
-        if (params != null) {
-            try {
-                this.params = new JSONObject(params.toString());
-            } catch (JSONException e) {
-                throw new IllegalArgumentException("Invalid params", e);
+            if (params != null) {
+                try {
+                    this.params = new JSONObject(params.toString());
+                } catch (JSONException e) {
+                    throw new IllegalArgumentException("Invalid params", e);
+                }
+            } else {
+                this.params = null;
             }
-        } else {
-            this.params = null;
+            return this;
         }
-        return this;
-    }
 
         public Builder paramsJson(@NonNull String paramsJson) {
             try {
@@ -267,7 +330,25 @@ public final class AndroidAssemblyWorkConfig {
             return this;
         }
 
+        public Builder signatureProvider(@NonNull String url) {
+            this.signatureProviderUrl = Objects.requireNonNull(url, "url");
+            return this;
+        }
+
+        public Builder signatureProviderMethod(@NonNull String method) {
+            this.signatureProviderMethod = Objects.requireNonNull(method, "method").toUpperCase();
+            return this;
+        }
+
+        public Builder addSignatureProviderHeader(@NonNull String key, @NonNull String value) {
+            this.signatureProviderHeaders.put(Objects.requireNonNull(key, "key"), Objects.requireNonNull(value, "value"));
+            return this;
+        }
+
         public AndroidAssemblyWorkConfig build() {
+            if ((authSecret == null || authSecret.isEmpty()) && signatureProviderUrl == null) {
+                throw new IllegalStateException("Either authSecret or signatureProvider must be provided");
+            }
             if (files.isEmpty()) {
                 throw new IllegalStateException("At least one file must be added");
             }

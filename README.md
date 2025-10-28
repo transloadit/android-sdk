@@ -210,7 +210,7 @@ WorkManager.getInstance(context).enqueue(config.toWorkRequest());
 
 For fully working examples take a look at [examples/](https://github.com/transloadit/android-sdk/tree/main/examples).
 
-Notably, `examples/src/main/kotlin/com/transloadit/examples/work/WorkManagerSample.kt` demonstrates how to enqueue background uploads using WorkManager and the new `AndroidAssemblyWorkConfig`. The accompanying unit test (`examples/src/test/kotlin/.../WorkManagerSampleTest.kt`) can be exercised locally via:
+Notably, `examples/src/main/kotlin/com/transloadit/examples/work/WorkManagerSample.kt` demonstrates how to enqueue background uploads using WorkManager and the new `AndroidAssemblyWorkConfig`, both with embedded secrets and with an external signature-provider endpoint. The accompanying unit test (`examples/src/test/kotlin/.../WorkManagerSampleTest.kt`) can be exercised locally via:
 
 ```bash
 ./scripts/test-in-docker.sh :examples:testDebugUnitTest --rerun-tasks

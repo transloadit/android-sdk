@@ -63,4 +63,26 @@ public class AndroidAssemblyWorkConfigTest {
         AndroidAssemblyWorkConfig reread = AndroidAssemblyWorkConfig.fromInputData(request.getWorkSpec().input);
         assertEquals("key", reread.getAuthKey());
     }
+
+    @Test
+    public void signatureProviderRoundTrip() throws Exception {
+        File file = temporaryFolder.newFile("upload.bin");
+        AndroidAssemblyWorkConfig config = AndroidAssemblyWorkConfig.newBuilder("key")
+                .signatureProvider("https://example.com/sign")
+                .signatureProviderMethod("post")
+                .addSignatureProviderHeader("Authorization", "Bearer token")
+                .paramsJson("{\"steps\":{\"resize\":{\"robot\":\"/image/resize\"}}}")
+                .addFile(file, "file")
+                .build();
+
+        JSONObject json = config.toJson();
+        AndroidAssemblyWorkConfig restored = AndroidAssemblyWorkConfig.fromJson(json);
+
+        assertEquals("key", restored.getAuthKey());
+        assertEquals("https://example.com/sign", restored.getSignatureProviderUrl());
+        assertEquals("POST", restored.getSignatureProviderMethod());
+        assertEquals("Bearer token", restored.getSignatureProviderHeaders().get("Authorization"));
+        assertEquals(1, restored.getFiles().size());
+        assertEquals(file.getAbsolutePath(), restored.getFiles().get(0).getPath());
+    }
 }

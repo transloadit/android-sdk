@@ -4,6 +4,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
+import android.os.Looper;
 
 import androidx.test.core.app.ApplicationProvider;
 
@@ -21,6 +22,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.Shadows;
+import org.robolectric.shadows.ShadowLooper;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -205,7 +208,7 @@ public class SignatureProviderE2ETest {
                 Future<AssemblyResponse> future = assembly.saveAsync(true);
 
                 // Wait until some bytes are uploaded before pausing
-                boolean progressSeen = progressLatch.await(2, TimeUnit.MINUTES);
+                boolean progressSeen = awaitLatch(progressLatch, 2, TimeUnit.MINUTES);
                 if (!progressSeen) {
                     log.accept("Timed out waiting for upload progress");
                     failWithTimeline("Upload progress not observed", timeline);
@@ -250,7 +253,7 @@ public class SignatureProviderE2ETest {
                     log.accept("Completed assembly results missing");
                 }
 
-                boolean sseSeen = sseLatch.await(2, TimeUnit.MINUTES);
+                boolean sseSeen = awaitLatch(sseLatch, 2, TimeUnit.MINUTES);
                 if (!sseSeen) {
                     log.accept("Timed out waiting for SSE events");
                     log.accept("Final assembly payload=" + completedJson);
@@ -260,7 +263,7 @@ public class SignatureProviderE2ETest {
                 assertTrue("Assembly not completed",
                         completedJson.optString("ok", "").toUpperCase().contains("ASSEMBLY_COMPLETED"));
 
-                boolean resultSeen = resultLatch.await(2, TimeUnit.MINUTES);
+                boolean resultSeen = awaitLatch(resultLatch, 2, TimeUnit.MINUTES);
                 if (!resultSeen) {
                     try {
                         AssemblyResponse latest = transloadit.getAssemblyByUrl(completed.getSslUrl());
@@ -497,6 +500,25 @@ public class SignatureProviderE2ETest {
         byte[] result = new byte[offset];
         System.arraycopy(data, 0, result, 0, offset);
         return result;
+    }
+
+    private static boolean awaitLatch(CountDownLatch latch, long timeout, TimeUnit unit) throws InterruptedException {
+        long deadline = System.nanoTime() + unit.toNanos(timeout);
+        ShadowLooper mainLooper = Shadows.shadowOf(Looper.getMainLooper());
+        while (latch.getCount() > 0) {
+            mainLooper.idle();
+            long remaining = deadline - System.nanoTime();
+            if (remaining <= 0) {
+                break;
+            }
+            long waitNanos = Math.min(TimeUnit.MILLISECONDS.toNanos(250), Math.max(1, remaining));
+            if (latch.await(waitNanos, TimeUnit.NANOSECONDS)) {
+                mainLooper.idle();
+                return true;
+            }
+        }
+        mainLooper.idle();
+        return latch.getCount() == 0;
     }
 
     private static boolean parseBoolean(String value) {

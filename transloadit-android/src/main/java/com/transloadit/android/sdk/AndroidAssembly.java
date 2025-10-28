@@ -201,6 +201,7 @@ public class AndroidAssembly extends Assembly implements Closeable {
         }
     }
 
+    @FunctionalInterface
     interface ListenerAction {
         void invoke(AndroidAssemblyListener listener);
     }

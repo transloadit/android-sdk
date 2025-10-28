@@ -1,19 +1,22 @@
 package com.transloadit.examples.work
 
+import android.content.Context
+import androidx.test.core.app.ApplicationProvider
 import androidx.work.Configuration
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import androidx.work.testing.SynchronousExecutor
 import androidx.work.testing.WorkManagerTestInitHelper
+import com.transloadit.android.sdk.AndroidAssemblyWorkConfig
+import org.junit.Assume.assumeTrue
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.io.File
-import kotlin.random.Random
-import org.junit.Assume.assumeTrue
-import org.junit.Assert.assertTrue
-import android.content.Context
-import androidx.test.core.app.ApplicationProvider
-import androidx.work.WorkInfo
-import androidx.work.WorkManager
+import java.util.UUID
 import java.util.concurrent.TimeUnit
+import kotlin.random.Random
 
 class WorkManagerSampleTest {
     private lateinit var context: Context
@@ -30,7 +33,7 @@ class WorkManagerSampleTest {
     }
 
     @Test
-    fun workRequestCompletes() {
+    fun workRequestWithSecretCompletes() {
         val authKeyValue = System.getenv("TRANSLOADIT_KEY")
         val authSecretValue = System.getenv("TRANSLOADIT_SECRET")
         assumeTrue(!authKeyValue.isNullOrBlank())
@@ -42,22 +45,22 @@ class WorkManagerSampleTest {
         val paramsJson = """{"steps":{"resize":{"robot":"/image/resize","width":32,"height":32,"result":true}}}"""
 
         val request = WorkManagerSample.enqueueUpload(context, authKey, authSecret, paramsJson, sampleFile)
+        waitForSuccess(request.id)
+    }
 
-        val testDriver = WorkManagerTestInitHelper.getTestDriver(context)!!
-        testDriver.setAllConstraintsMet(request.id)
+    @Test
+    fun signatureProviderConfigCanBeBuilt() {
+        val config = AndroidAssemblyWorkConfig.newBuilder("key")
+            .signatureProvider("https://example.com/sign")
+            .signatureProviderMethod("POST")
+            .addSignatureProviderHeader("Authorization", "Bearer token")
+            .paramsJson("{\"steps\":{\"noop\":{\"robot\":\"/file/import\"}}}")
+            .addFile(createTempFile(), "file")
+            .build()
 
-        val workManager = WorkManager.getInstance(context)
-        val deadline = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(5)
-        var info: WorkInfo
-        do {
-            info = workManager.getWorkInfoById(request.id).get(10, TimeUnit.SECONDS)
-            if (info.state == WorkInfo.State.SUCCEEDED) {
-                break
-            }
-            Thread.sleep(1_000)
-        } while (info.state == WorkInfo.State.RUNNING && System.currentTimeMillis() < deadline)
-
-        assertTrue("Worker should succeed", info.state == WorkInfo.State.SUCCEEDED)
+        assertEquals("https://example.com/sign", config.getSignatureProviderUrl())
+        assertEquals("POST", config.getSignatureProviderMethod())
+        assertEquals("Bearer token", config.getSignatureProviderHeaders()["Authorization"])
     }
 
     private fun createTempFile(): File {
@@ -69,4 +72,23 @@ class WorkManagerSampleTest {
         }
         return file
     }
+
+    private fun waitForSuccess(id: UUID) {
+        val testDriver = WorkManagerTestInitHelper.getTestDriver(context)!!
+        testDriver.setAllConstraintsMet(id)
+
+        val workManager = WorkManager.getInstance(context)
+        val deadline = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(5)
+        var info: WorkInfo
+        do {
+            info = workManager.getWorkInfoById(id).get(10, TimeUnit.SECONDS)
+            if (info.state == WorkInfo.State.SUCCEEDED) {
+                break
+            }
+            Thread.sleep(1_000)
+        } while (info.state == WorkInfo.State.RUNNING && System.currentTimeMillis() < deadline)
+
+        assertTrue("Worker should succeed", info.state == WorkInfo.State.SUCCEEDED)
+    }
+
 }

@@ -23,7 +23,7 @@
 - Keep the Android Docker and CI parity harness aligned with the Java SDK release that ships the stabilized SSE behaviour, ensuring both suites exercise the same SSE fixtures.
 - Default `AndroidAssembly` callbacks to the Android main thread and add opt-in APIs for background/custom executors.
 - Added `pauseUploadsSafely`/`resumeUploadsSafely` helpers and an optional WorkManager integration (`AndroidAssemblyWorkConfig` + `AndroidAssemblyUploadWorker`) to persist resumable uploads in the background.
-- Added a runnable Kotlin WorkManager sample (`examples/…/WorkManagerSample.kt`) and matching E2E test to showcase background uploads with the new API surface.
+- Added a runnable Kotlin WorkManager sample (`examples/…/WorkManagerSample.kt`) and matching E2E test to showcase background uploads with the new API surface, including external signature-provider usage.
 - **Breaking:** Removed dependency on the Java SDK's deprecated `AsyncAssembly` API and introduced a new `AndroidAssembly` wrapper built on the modern SSE-based workflow
 - Added `AndroidAssemblyListener` to replace the old `AssemblyProgressListener`
 - Updated samples, documentation, and tests to use the new asynchronous API

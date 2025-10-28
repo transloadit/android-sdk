@@ -7,6 +7,7 @@ import androidx.work.Data;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
+import com.transloadit.sdk.SignatureProvider;
 import com.transloadit.sdk.exceptions.LocalOperationException;
 import com.transloadit.sdk.exceptions.RequestException;
 import com.transloadit.sdk.response.AssemblyResponse;
@@ -14,6 +15,14 @@ import com.transloadit.sdk.response.AssemblyResponse;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.BufferedReader;
+import java.io.BufferedOutputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -25,6 +34,8 @@ import java.util.concurrent.atomic.AtomicReference;
  * WorkManager worker that executes a Transloadit assembly in the background.
  */
 public class AndroidAssemblyUploadWorker extends Worker {
+
+    private static final Charset UTF8 = Charset.forName("UTF-8");
 
     public static final String OUTPUT_ASSEMBLY_ID = "assembly_id";
     public static final String OUTPUT_ASSEMBLY_URL = "assembly_url";
@@ -44,9 +55,27 @@ public class AndroidAssemblyUploadWorker extends Worker {
             return Result.failure(new Data.Builder().putString("error", e.getMessage()).build());
         }
 
-        AndroidTransloadit transloadit = config.getHostUrl() == null
-                ? new AndroidTransloadit(config.getAuthKey(), config.getAuthSecret())
-                : new AndroidTransloadit(config.getAuthKey(), config.getAuthSecret(), config.getHostUrl());
+        AndroidTransloadit transloadit;
+        String authSecret = config.getAuthSecret();
+        String signatureUrl = config.getSignatureProviderUrl();
+        if (authSecret != null && !authSecret.isEmpty()) {
+            if (config.getHostUrl() == null) {
+                transloadit = new AndroidTransloadit(config.getAuthKey(), authSecret);
+            } else {
+                transloadit = new AndroidTransloadit(config.getAuthKey(), authSecret, config.getHostUrl());
+            }
+        } else if (signatureUrl != null) {
+            SignatureProvider provider = buildSignatureProvider(signatureUrl,
+                    config.getSignatureProviderMethod(),
+                    config.getSignatureProviderHeaders());
+            if (config.getHostUrl() == null) {
+                transloadit = new AndroidTransloadit(config.getAuthKey(), provider);
+            } else {
+                transloadit = new AndroidTransloadit(config.getAuthKey(), provider, config.getHostUrl());
+            }
+        } else {
+            return Result.failure(new Data.Builder().putString("error", "Missing authSecret or signature provider").build());
+        }
 
         CountDownLatch completionLatch = config.shouldWaitForCompletion() ? new CountDownLatch(1) : null;
         AtomicReference<AssemblyResponse> completionResponse = new AtomicReference<>();
@@ -143,5 +172,52 @@ public class AndroidAssemblyUploadWorker extends Worker {
                 .putString(OUTPUT_SSL_URL, finalResponse.getSslUrl())
                 .build();
         return Result.success(output);
+    }
+
+    private SignatureProvider buildSignatureProvider(String url, String method, java.util.Map<String, String> headers) {
+        final String httpMethod = method == null ? "POST" : method.toUpperCase();
+        final java.util.Map<String, String> requestHeaders = headers == null ? java.util.Collections.emptyMap() : headers;
+        return paramsJson -> {
+            HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+            connection.setRequestMethod(httpMethod);
+            connection.setConnectTimeout(15_000);
+            connection.setReadTimeout(15_000);
+            connection.setDoInput(true);
+            for (java.util.Map.Entry<String, String> entry : requestHeaders.entrySet()) {
+                connection.setRequestProperty(entry.getKey(), entry.getValue());
+            }
+            if ("POST".equals(httpMethod) || "PUT".equals(httpMethod)) {
+                connection.setDoOutput(true);
+                connection.setRequestProperty("Content-Type", "application/json");
+            try (OutputStream os = new BufferedOutputStream(connection.getOutputStream())) {
+                os.write(paramsJson.getBytes(UTF8));
+            }
+            }
+
+            int code = connection.getResponseCode();
+            InputStream stream = code >= 200 && code < 300 ? connection.getInputStream() : connection.getErrorStream();
+            String response;
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, UTF8))) {
+                StringBuilder sb = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line);
+                }
+                response = sb.toString();
+            } finally {
+                connection.disconnect();
+            }
+
+            if (code < 200 || code >= 300) {
+                throw new RequestException("Signature provider returned status " + code + ": " + response);
+            }
+
+            JSONObject json = new JSONObject(response);
+            String signature = json.optString("signature", null);
+            if (signature == null || signature.isEmpty()) {
+                throw new RequestException("Signature provider response missing signature field");
+            }
+            return signature;
+        };
     }
 }

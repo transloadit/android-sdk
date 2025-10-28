@@ -4,6 +4,7 @@ plugins {
 }
 
 repositories {
+    google()
     mavenCentral()
 }
 
@@ -49,6 +50,7 @@ dependencies {
     implementation 'com.transloadit.sdk:transloadit:2.2.4'
     implementation project(':transloadit-android')
     implementation 'androidx.work:work-runtime-ktx:2.9.0'
+    implementation 'com.squareup.okhttp3:mockwebserver:4.12.0'
 
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.jetbrains.kotlin:kotlin-test-junit:1.9.24'

@@ -34,4 +34,30 @@ object WorkManagerSample {
             .enqueueUniqueWork(UNIQUE_WORK_NAME, ExistingWorkPolicy.REPLACE, request)
         return request
     }
+
+    fun enqueueUploadWithSignatureProvider(
+        context: Context,
+        authKey: String,
+        signatureEndpoint: String,
+        paramsJson: String,
+        file: File,
+        field: String = "file",
+        headers: Map<String, String> = emptyMap(),
+        method: String = "POST"
+    ): OneTimeWorkRequest {
+        val builder = AndroidAssemblyWorkConfig
+            .newBuilder(authKey)
+            .signatureProvider(signatureEndpoint)
+            .signatureProviderMethod(method)
+            .paramsJson(paramsJson)
+            .addFile(file, field)
+            .waitForCompletion(true)
+
+        headers.forEach { (key, value) -> builder.addSignatureProviderHeader(key, value) }
+
+        val request = builder.build().toWorkRequest()
+        WorkManager.getInstance(context)
+            .enqueueUniqueWork(UNIQUE_WORK_NAME, ExistingWorkPolicy.REPLACE, request)
+        return request
+    }
 }
