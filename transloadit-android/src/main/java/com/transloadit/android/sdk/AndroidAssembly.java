@@ -65,6 +65,9 @@ public class AndroidAssembly extends Assembly implements Closeable {
             } catch (LocalOperationException | RequestException e) {
                 listener.onUploadFailed(e);
                 throw e;
+            } catch (Exception e) {
+                listener.onUploadFailed(e);
+                throw e;
             }
         };
         return executor.submit(task);
