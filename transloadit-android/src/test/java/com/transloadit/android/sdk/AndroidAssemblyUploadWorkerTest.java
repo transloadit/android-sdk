@@ -146,9 +146,8 @@ public class AndroidAssemblyUploadWorkerTest {
 
     private static Set<String> currentPoolThreadNames() {
         return Thread.getAllStackTraces().keySet().stream()
-                .filter(thread -> !thread.isDaemon())
                 .map(Thread::getName)
-                .filter(name -> name.startsWith("pool-"))
+                .filter(name -> name.startsWith("pool-") || name.startsWith("android-assembly-"))
                 .collect(Collectors.toSet());
     }
 

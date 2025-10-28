@@ -22,6 +22,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.tus.android.client.TusPreferencesURLStore;
 import io.tus.java.client.TusURLStore;
@@ -37,6 +39,14 @@ public class AndroidAssembly extends Assembly implements Closeable {
      * NOTE: renamed from "tansloadit_" in 0.x; existing persisted uploads will not resume automatically.
      */
     public static final String DEFAULT_PREFERENCE_NAME = "transloadit_android_sdk_urls"; // NOTE: renamed from "tansloadit_" in 0.x; existing persisted uploads will not resume automatically.
+
+    private static final AtomicInteger THREAD_COUNTER = new AtomicInteger(1);
+    private static final ThreadFactory THREAD_FACTORY = runnable -> {
+        Thread thread = new Thread(runnable, "android-assembly-" + THREAD_COUNTER.getAndIncrement());
+        thread.setDaemon(true);
+        return thread;
+    };
+    private static final ExecutorService SHARED_EXECUTOR = Executors.newCachedThreadPool(THREAD_FACTORY);
 
     private final Context context;
     private final AndroidAssemblyListener listener;
@@ -55,7 +65,7 @@ public class AndroidAssembly extends Assembly implements Closeable {
         super(transloadit);
         this.context = context.getApplicationContext();
         this.listener = listener;
-        this.executor = Executors.newSingleThreadExecutor();
+        this.executor = SHARED_EXECUTOR;
         this.mainThreadExecutor = new MainThreadExecutor();
         this.listenerExecutor = this.mainThreadExecutor;
         setPreferenceName(DEFAULT_PREFERENCE_NAME);
@@ -227,7 +237,7 @@ public class AndroidAssembly extends Assembly implements Closeable {
 
     @Override
     public void close() throws IOException {
-        executor.shutdownNow();
+        // no per-instance resources to close; executor is shared.
     }
 
     private static class MainThreadExecutor implements Executor {
