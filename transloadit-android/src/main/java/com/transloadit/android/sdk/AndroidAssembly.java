@@ -32,7 +32,7 @@ import io.tus.java.client.TusURLStore;
  * rerouted to a custom executor via {@link #setListenerCallbackExecutor(Executor)}.
  */
 public class AndroidAssembly extends Assembly implements Closeable {
-    public static final String DEFAULT_PREFERENCE_NAME = "transloadit_android_sdk_urls";
+    public static final String DEFAULT_PREFERENCE_NAME = "transloadit_android_sdk_urls"; // NOTE: renamed from "tansloadit_" in 0.x; existing persisted uploads will not resume automatically.
 
     private final Context context;
     private final AndroidAssemblyListener listener;

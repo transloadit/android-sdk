@@ -186,6 +186,7 @@ assembly.useDirectCallbacks(); // run callbacks on the calling thread
 - Prefer external signature generation via `new AndroidTransloadit(key, signatureProvider)`. Passing the secret into your APK still works but is no longer recommended for production.
 - Tests, CI, and examples now execute against the bundled `chameleon.jpg` fixture and require `result: true` on resize steps so SSE result payloads arrive consistently.
 - The SDK depends on `com.transloadit.sdk:transloadit:2.2.4` or newer. Ensure any overrides or local builds are upgraded in lockstep.
+- Persisted tus uploads now live under the SharedPreferences name `transloadit_android_sdk_urls`. If you upgrade from 0.x and rely on resuming uploads saved under the typo’d `tansloadit_android_sdk_urls`, plan a manual migration.
 
 ## Resumable uploads & WorkManager
 
