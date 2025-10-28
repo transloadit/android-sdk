@@ -2,30 +2,13 @@
 
 ## 1.0.0 / TO BE RELEASED
 
-### Ideas for v1.0
-
-- [x] Stop requiring an `Activity` to submit assemblies; accept a plain `Context` so services and WorkManager jobs can drive uploads.
-- [x] Deliver per-upload progress and completion/failure callbacks with the new listener API.
-- [x] Deliver listener callbacks on the main thread (provide opt-out for background execution).
-- [x] Improve upload persistence (resume support, optional WorkManager integration, clearer API around pausing/resuming).
-- [x] Establish end-to-end signature-provider + tus integration harness:
-  - [x] Add an instrumentation test skeleton that exercises signature-provider uploads via a MockWebServer and real Transloadit credentials (skipped by default when secrets are absent).
-  - [x] Drive an actual upload through the Android client, hit Transloadit over tus, and assert the resized result metadata.
-  - [x] Document required secrets/Gradle arguments and wire an opt-in CI job that runs the E2E flow.
-  - [x] Expand the test to pause midway, resume the tus upload, and assert SSE progress/completion events.
-- [ ] Finalize public API naming/packages and publish a migration guide from the legacy `AndroidAsyncAssembly` API.
-- [x] Refresh samples (Java + Kotlin) and docs to demonstrate the new `AndroidAssembly` workflow end-to-end.
-- [x] Update CI and release automation to build/test against the embedded java-sdk source dependency.
-
-
+- **Breaking:** Removed dependency on the Java SDK's deprecated `AsyncAssembly` API and introduced a new `AndroidAssembly` wrapper built on the modern SSE-based workflow
+- **Breaking:** SharedPreferences backing resumable uploads now uses `transloadit_android_sdk_urls` (previously typo’d `tansloadit_android_sdk_urls`). Existing persisted tus entries will need manual migration if backward compatibility is required.
 - Upgrade dependency to `com.transloadit.sdk:transloadit:2.2.4` to align with the latest Java SDK release and pick up the simplified SSE handling.
-- Bundle `chameleon.jpg` as an embedded fixture so Smart CDN parity tests can run without network access, and always request `result: true` on the resize step to surface outputs via SSE.
 - Keep the Android Docker and CI parity harness aligned with the Java SDK release that ships the stabilized SSE behaviour, ensuring both suites exercise the same SSE fixtures.
 - Default `AndroidAssembly` callbacks to the Android main thread and add opt-in APIs for background/custom executors.
 - Added `pauseUploadsSafely`/`resumeUploadsSafely` helpers and an optional WorkManager integration (`AndroidAssemblyWorkConfig` + `AndroidAssemblyUploadWorker`) to persist resumable uploads in the background.
 - Added a runnable Kotlin WorkManager sample (`examples/…/WorkManagerSample.kt`) and matching E2E test to showcase background uploads with the new API surface, including external signature-provider usage.
-- **Breaking:** SharedPreferences backing resumable uploads now uses `transloadit_android_sdk_urls` (previously typo’d `tansloadit_android_sdk_urls`). Existing persisted tus entries will need manual migration if backward compatibility is required.
-- **Breaking:** Removed dependency on the Java SDK's deprecated `AsyncAssembly` API and introduced a new `AndroidAssembly` wrapper built on the modern SSE-based workflow
 - Added `AndroidAssemblyListener` to replace the old `AssemblyProgressListener`
 - Updated samples, documentation, and tests to use the new asynchronous API
 - Added environment-aware Docker tests plus live assembly integration coverage
