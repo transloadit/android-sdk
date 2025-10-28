@@ -187,6 +187,25 @@ assembly.useDirectCallbacks(); // run callbacks on the calling thread
 - Tests, CI, and examples now execute against the bundled `chameleon.jpg` fixture and require `result: true` on resize steps so SSE result payloads arrive consistently.
 - The SDK depends on `com.transloadit.sdk:transloadit:2.2.4` or newer. Ensure any overrides or local builds are upgraded in lockstep.
 
+## Resumable uploads & WorkManager
+
+- Call `pauseUploadsSafely()` / `resumeUploadsSafely()` on `AndroidAssembly` to control active tus uploads without micromanaging exceptions. Errors are routed to `onAssemblyStatusUpdateFailed` so your listener can surface them to the UI.
+- Use unique preference names via `assembly.preferenceName("my_store")` when running multiple concurrent assemblies so tus resume information can be partitioned per job.
+- To move uploads into background execution, build a `OneTimeWorkRequest` with `AndroidAssemblyWorkConfig` and enqueue it through WorkManager:
+
+```java
+AndroidAssemblyWorkConfig config = AndroidAssemblyWorkConfig
+    .newBuilder("TRANSLOADIT_KEY", "TRANSLOADIT_SECRET")
+    .paramsJson(paramsJsonString)
+    .preferenceName("my_transloadit_store")
+    .addFile(new File(context.getCacheDir(), "photo.jpg"), "image")
+    .build();
+
+WorkManager.getInstance(context).enqueue(config.toWorkRequest());
+```
+
+`AndroidAssemblyUploadWorker` waits for uploads (and, optionally, SSE completion) on a background thread so your app can survive process death or move long-running jobs out of the foreground.
+
 ## Example
 
 For fully working examples take a look at [examples/](https://github.com/transloadit/android-sdk/tree/main/examples).

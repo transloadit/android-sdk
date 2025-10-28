@@ -1,0 +1,66 @@
+package com.transloadit.android.sdk;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import androidx.work.Constraints;
+import androidx.work.NetworkType;
+import androidx.work.OneTimeWorkRequest;
+
+import org.json.JSONObject;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import java.io.File;
+
+public class AndroidAssemblyWorkConfigTest {
+
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
+    @Test
+    public void roundTripSerializationWorks() throws Exception {
+        File file = temporaryFolder.newFile("upload.bin");
+        AndroidAssemblyWorkConfig config = AndroidAssemblyWorkConfig.newBuilder("key", "secret")
+                .hostUrl("https://api2.transloadit.com")
+                .paramsJson("{\"steps\":{\"resize\":{\"robot\":\"/image/resize\",\"width\":32}}}")
+                .addFile(file, "image")
+                .preferenceName("custom_store")
+                .completionTimeoutMillis(90_000)
+                .uploadTimeoutMillis(120_000)
+                .waitForCompletion(true)
+                .resumable(true)
+                .build();
+
+        JSONObject json = config.toJson();
+        AndroidAssemblyWorkConfig restored = AndroidAssemblyWorkConfig.fromJson(json);
+
+        assertEquals("key", restored.getAuthKey());
+        assertEquals("secret", restored.getAuthSecret());
+        assertEquals("https://api2.transloadit.com", restored.getHostUrl());
+        assertEquals("custom_store", restored.getPreferenceName());
+        assertTrue(restored.shouldWaitForCompletion());
+        assertTrue(restored.isResumable());
+        assertEquals(90_000, restored.getCompletionTimeoutMillis());
+        assertEquals(120_000, restored.getUploadTimeoutMillis());
+        assertEquals(1, restored.getFiles().size());
+        assertEquals(file.getAbsolutePath(), restored.getFiles().get(0).getPath());
+        assertNotNull(restored.getParams());
+    }
+
+    @Test
+    public void workRequestUsesNetworkConstraint() throws Exception {
+        File file = temporaryFolder.newFile("upload.bin");
+        AndroidAssemblyWorkConfig config = AndroidAssemblyWorkConfig.newBuilder("key", "secret")
+                .addFile(file, "file")
+                .build();
+
+        OneTimeWorkRequest request = config.toWorkRequest();
+        Constraints constraints = request.getWorkSpec().constraints;
+        assertEquals(NetworkType.CONNECTED, constraints.getRequiredNetworkType());
+        AndroidAssemblyWorkConfig reread = AndroidAssemblyWorkConfig.fromInputData(request.getWorkSpec().input);
+        assertEquals("key", reread.getAuthKey());
+    }
+}

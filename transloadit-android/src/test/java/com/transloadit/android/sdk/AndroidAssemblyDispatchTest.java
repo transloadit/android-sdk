@@ -101,4 +101,16 @@ public class AndroidAssemblyDispatchTest {
         background.shutdownNow();
         assembly.close();
     }
+
+    @Test
+    public void pauseAndResumeHelpersSucceedWithoutUploads() throws Exception {
+        AndroidAssemblyListener listener = new AndroidAssemblyListener() { };
+        AndroidAssembly assembly = new AndroidAssembly(transloadit, listener, context);
+        try {
+            assertTrue(assembly.pauseUploadsSafely());
+            assertTrue(assembly.resumeUploadsSafely());
+        } finally {
+            assembly.close();
+        }
+    }
 }

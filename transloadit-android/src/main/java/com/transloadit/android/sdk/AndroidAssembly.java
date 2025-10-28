@@ -95,6 +95,26 @@ public class AndroidAssembly extends Assembly implements Closeable {
         this.listenerExecutor = Runnable::run;
     }
 
+    public boolean pauseUploadsSafely() {
+        try {
+            super.pauseUploads();
+            return true;
+        } catch (LocalOperationException e) {
+            dispatchListener(l -> l.onAssemblyStatusUpdateFailed(e));
+            return false;
+        }
+    }
+
+    public boolean resumeUploadsSafely() {
+        try {
+            super.resumeUploads();
+            return true;
+        } catch (LocalOperationException | RequestException e) {
+            dispatchListener(l -> l.onAssemblyStatusUpdateFailed(e));
+            return false;
+        }
+    }
+
     @androidx.annotation.VisibleForTesting
     Executor getListenerExecutorForTesting() {
         return listenerExecutor;
