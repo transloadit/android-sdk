@@ -108,6 +108,9 @@ public class AndroidAssemblyUploadWorker extends Worker {
             @Override
             public void onAssemblyStatusUpdateFailed(Exception exception) {
                 completionError.compareAndSet(null, exception);
+                if (completionLatch != null) {
+                    completionLatch.countDown();
+                }
             }
 
             @Override
@@ -119,7 +122,7 @@ public class AndroidAssemblyUploadWorker extends Worker {
             }
         };
 
-        AndroidAssembly assembly = transloadit.newAssembly(listener, getApplicationContext());
+        AndroidAssembly assembly = createAssembly(transloadit, listener);
         try {
             assembly.useDirectCallbacks();
             if (config.getPreferenceName() != null) {
@@ -269,5 +272,12 @@ public class AndroidAssemblyUploadWorker extends Worker {
             }
             return signature;
         };
+    }
+
+    /**
+     * Factory for creating assemblies; overridden in tests.
+     */
+    protected AndroidAssembly createAssembly(AndroidTransloadit transloadit, AndroidAssemblyListener listener) {
+        return transloadit.newAssembly(listener, getApplicationContext());
     }
 }
