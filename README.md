@@ -38,7 +38,6 @@ To reproduce the current Smart CDN SSE regression without waiting for production
 
 - Export `TRANSLOADIT_HOST` with the base URL of the API instance you want to target (for example `http://localhost:3000` when running a local uploader).
 - Set `ANDROID_SDK_FORCE_RESULTLESS=1` before running the E2E test suite to instruct the test to request a pipeline that produces no results, mirroring the failure mode.
-- In the API repository, optionally set `TL_DEBUG_DROP_RESULTS_FOR_STEP=resize` to make `api2` drop the `resize` result deterministically.
 - With the environment prepared, run `ANDROID_SDK_E2E=1 ./scripts/test-in-docker.sh :transloadit-android:testDebugUnitTest --rerun-tasks` to hit the local stack and capture the logs printed by `SignatureProviderE2ETest`.
 
 The test still fails by design in this mode, but it now emits detailed timing logs and the final assembly payload so the API behaviour can be inspected locally.
