@@ -2,19 +2,16 @@
 
 ## 0.2.0 / TO BE RELEASED
 
-Below 1.0 SemVer allows us to make breaking changes, and we have shipped a number of them in this release, please review carefully.
+Below 1.0 we reserve the right to ship breaking changes; please review the highlights carefully before upgrading.
 
-- **Breaking:** Removed dependency on the Java SDK's deprecated `AsyncAssembly` API and introduced a new `AndroidAssembly` wrapper built on the modern SSE-based workflow
-- **Breaking:** SharedPreferences backing resumable uploads now uses `transloadit_android_sdk_urls` (previously typo’d `tansloadit_android_sdk_urls`). Existing persisted tus entries will need manual migration if backward compatibility is required.
-- **Breaking:** Building the SDK now requires JDK 17+. Published AARs still target Java 11 bytecode so consuming apps can desugar on older toolchains.
-- Upgrade dependency to `com.transloadit.sdk:transloadit:2.2.4` to align with the latest Java SDK release and pick up the simplified SSE handling.
-- Keep the Android Docker and CI parity harness aligned with the Java SDK release that ships the stabilized SSE behaviour, ensuring both suites exercise the same SSE fixtures.
-- Default `AndroidAssembly` callbacks to the Android main thread and add opt-in APIs for background/custom executors.
-- Added `pauseUploadsSafely`/`resumeUploadsSafely` helpers and an optional WorkManager integration (`AndroidAssemblyWorkConfig` + `AndroidAssemblyUploadWorker`) to persist resumable uploads in the background.
-- Added a runnable Kotlin WorkManager sample (`examples/…/WorkManagerSample.kt`) and matching E2E test to showcase background uploads with the new API surface, including external signature-provider usage.
-- Added `AndroidAssemblyListener` to replace the old `AssemblyProgressListener`
-- Updated samples, documentation, and tests to use the new asynchronous API
-- Added environment-aware Docker tests plus live assembly integration coverage
+- **Breaking:** Replaced the deprecated `AndroidAsyncAssembly` wrapper with a new `AndroidAssembly` that uses the modern SSE workflow, dispatches listener callbacks on the main thread by default, and runs on a shared daemon executor (no more per-instance thread leaks).
+- **Breaking:** The SharedPreferences store that backs tus resumable uploads now lives under `transloadit_android_sdk_urls` (previously typo’d `tansloadit_android_sdk_urls`). Migrate any persisted URLs if you rely on in-flight resumes.
+- **Breaking:** Building the SDK now requires JDK 17+. We still emit Java 11 bytecode so consuming apps running older toolchains can desugar successfully.
+- Added `AndroidAssemblyWorkConfig` and `AndroidAssemblyUploadWorker`, making it straightforward to enqueue WorkManager jobs that either use inline secrets or fetch signatures from a remote endpoint (including remote-only `/http/import` style assemblies).
+- Hardened background uploads: ensure assemblies are closed after use, unblock completion latches on SSE polling failures, treat signature-provider errors without bodies as deterministic failures, and tolerate configs that upload zero local files.
+- Introduced `pauseUploadsSafely` / `resumeUploadsSafely`, plus listener helpers that allow switching between main-thread and direct callback execution.
+- Updated samples and documentation to showcase remote signature authentication, the WorkManager flow, and the new listener API; clarified the JDK requirement and the main-thread behaviour.
+- Expanded CI and Docker-based test harnesses (dual Java 17/21 matrix, executor/thread leak detection, remote-signature fixtures) and bumped to `com.transloadit.sdk:transloadit:2.2.4` so Android stays aligned with the latest Java SDK.
 
 ## 0.1.0 / 2025-10-15
 
