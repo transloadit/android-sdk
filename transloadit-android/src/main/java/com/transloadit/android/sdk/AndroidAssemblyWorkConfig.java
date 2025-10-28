@@ -517,9 +517,6 @@ public final class AndroidAssemblyWorkConfig {
             if ((authSecret == null || authSecret.isEmpty()) && signatureProviderUrl == null) {
                 throw new IllegalStateException("Either authSecret or signatureProvider must be provided");
             }
-            if (files.isEmpty()) {
-                throw new IllegalStateException("At least one file must be added");
-            }
             return new AndroidAssemblyWorkConfig(this);
         }
     }

@@ -85,4 +85,14 @@ public class AndroidAssemblyWorkConfigTest {
         assertEquals(1, restored.getFiles().size());
         assertEquals(file.getAbsolutePath(), restored.getFiles().get(0).getPath());
     }
+
+    @Test
+    public void allowsRemoteOnlyAssemblies() throws Exception {
+        AndroidAssemblyWorkConfig config = AndroidAssemblyWorkConfig.newBuilder("key", "secret")
+                .paramsJson("{\"steps\":{\"import\":{\"robot\":\"/http/import\",\"url\":\"https://example.com/file.jpg\"}}}")
+                .build();
+
+        assertTrue(config.getFiles().isEmpty());
+        assertNotNull(config.getParams());
+    }
 }
