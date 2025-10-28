@@ -22,7 +22,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.function.Consumer;
 
 import io.tus.android.client.TusPreferencesURLStore;
 import io.tus.java.client.TusURLStore;
@@ -179,9 +178,9 @@ public class AndroidAssembly extends Assembly implements Closeable {
         };
     }
 
-    private void dispatchListener(Consumer<AndroidAssemblyListener> action) {
+    private void dispatchListener(ListenerAction action) {
         Executor executor = listenerExecutor;
-        executor.execute(() -> action.accept(listener));
+        executor.execute(() -> action.invoke(listener));
     }
 
     @Override
@@ -200,5 +199,9 @@ public class AndroidAssembly extends Assembly implements Closeable {
                 handler.post(command);
             }
         }
+    }
+
+    interface ListenerAction {
+        void invoke(AndroidAssemblyListener listener);
     }
 }

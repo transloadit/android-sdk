@@ -14,7 +14,7 @@
   - [x] Document required secrets/Gradle arguments and wire an opt-in CI job that runs the E2E flow.
   - [x] Expand the test to pause midway, resume the tus upload, and assert SSE progress/completion events.
 - [ ] Finalize public API naming/packages and publish a migration guide from the legacy `AndroidAsyncAssembly` API.
-- [ ] Refresh samples (Java + Kotlin) and docs to demonstrate the new `AndroidAssembly` workflow end-to-end.
+- [x] Refresh samples (Java + Kotlin) and docs to demonstrate the new `AndroidAssembly` workflow end-to-end.
 - [x] Update CI and release automation to build/test against the embedded java-sdk source dependency.
 
 
@@ -23,6 +23,7 @@
 - Keep the Android Docker and CI parity harness aligned with the Java SDK release that ships the stabilized SSE behaviour, ensuring both suites exercise the same SSE fixtures.
 - Default `AndroidAssembly` callbacks to the Android main thread and add opt-in APIs for background/custom executors.
 - Added `pauseUploadsSafely`/`resumeUploadsSafely` helpers and an optional WorkManager integration (`AndroidAssemblyWorkConfig` + `AndroidAssemblyUploadWorker`) to persist resumable uploads in the background.
+- Added a runnable Kotlin WorkManager sample (`examples/…/WorkManagerSample.kt`) and matching E2E test to showcase background uploads with the new API surface.
 - **Breaking:** Removed dependency on the Java SDK's deprecated `AsyncAssembly` API and introduced a new `AndroidAssembly` wrapper built on the modern SSE-based workflow
 - Added `AndroidAssemblyListener` to replace the old `AssemblyProgressListener`
 - Updated samples, documentation, and tests to use the new asynchronous API

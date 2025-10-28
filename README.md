@@ -210,6 +210,14 @@ WorkManager.getInstance(context).enqueue(config.toWorkRequest());
 
 For fully working examples take a look at [examples/](https://github.com/transloadit/android-sdk/tree/main/examples).
 
+Notably, `examples/src/main/kotlin/com/transloadit/examples/work/WorkManagerSample.kt` demonstrates how to enqueue background uploads using WorkManager and the new `AndroidAssemblyWorkConfig`. The accompanying unit test (`examples/src/test/kotlin/.../WorkManagerSampleTest.kt`) can be exercised locally via:
+
+```bash
+./scripts/test-in-docker.sh :examples:testDebugUnitTest --rerun-tasks
+```
+
+Provide the same environment variables (`ANDROID_SDK_E2E`, `TRANSLOADIT_KEY`, `TRANSLOADIT_SECRET`) as the primary E2E flow to run the sample end-to-end against Transloadit.
+
 ## Development
 
 Run the unit test suite inside Docker to avoid installing the Android toolchain locally:
