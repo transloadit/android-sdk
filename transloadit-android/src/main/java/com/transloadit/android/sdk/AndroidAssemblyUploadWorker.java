@@ -136,10 +136,10 @@ public class AndroidAssemblyUploadWorker extends Worker {
             if (cause instanceof Exception) {
                 completionError.compareAndSet(null, (Exception) cause);
             }
-            return Result.retry();
+            return handleFailure(completionError.get());
         } catch (Exception e) {
             completionError.compareAndSet(null, e);
-            return Result.retry();
+            return handleFailure(e);
         }
 
         if (config.shouldWaitForCompletion()) {
@@ -156,12 +156,7 @@ public class AndroidAssemblyUploadWorker extends Worker {
 
         Exception completionException = completionError.get();
         if (completionException != null) {
-            boolean retryable = completionException instanceof RequestException
-                    || completionException instanceof LocalOperationException;
-            Data output = new Data.Builder()
-                    .putString("error", completionException.getMessage())
-                    .build();
-            return retryable ? Result.retry() : Result.failure(output);
+            return handleFailure(completionException);
         }
 
         AssemblyResponse finalResponse = completionResponse.get() != null ? completionResponse.get() : initial;
@@ -172,6 +167,16 @@ public class AndroidAssemblyUploadWorker extends Worker {
                 .putString(OUTPUT_SSL_URL, finalResponse.getSslUrl())
                 .build();
         return Result.success(output);
+    }
+
+    private Result handleFailure(Exception error) {
+        if (error instanceof RequestException || error instanceof LocalOperationException) {
+            Data output = new Data.Builder()
+                    .putString("error", error.getMessage())
+                    .build();
+            return Result.failure(output);
+        }
+        return Result.retry();
     }
 
     private SignatureProvider buildSignatureProvider(String url, String method, java.util.Map<String, String> headers) {

@@ -29,7 +29,11 @@ class WorkManagerSampleTest {
         val config = Configuration.Builder()
             .setExecutor(SynchronousExecutor())
             .build()
-        WorkManagerTestInitHelper.initializeTestWorkManager(context, config)
+        try {
+            WorkManagerTestInitHelper.initializeTestWorkManager(context, config)
+        } catch (illegalState: IllegalStateException) {
+            // Already initialized for this test process; ignore so subsequent tests can run.
+        }
     }
 
     @Test
