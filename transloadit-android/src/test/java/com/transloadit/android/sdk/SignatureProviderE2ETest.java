@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
@@ -232,20 +233,53 @@ public class SignatureProviderE2ETest {
 
                 AssemblyResponse completed = waitForCompletion(transloadit, initial.getId());
                 assertNotNull("Final assembly response missing", completed);
-                log.accept("Completed assembly ok=" + completed.json().optString("ok"));
+                JSONObject completedJson = completed.json();
+                log.accept("Completed assembly ok=" + completedJson.optString("ok"));
+                JSONObject resultsObject = completedJson.optJSONObject("results");
+                if (resultsObject != null) {
+                    log.accept("Completed assembly result keys=" + jsonObjectKeys(resultsObject));
+                    JSONArray resizeFromCompletion = resultsObject.optJSONArray("resize");
+                    if (resizeFromCompletion != null) {
+                        log.accept("Completed assembly resize results count=" + resizeFromCompletion.length());
+                    } else {
+                        log.accept("Completed assembly resize results missing");
+                    }
+                } else {
+                    log.accept("Completed assembly results missing");
+                }
 
                 boolean sseSeen = sseLatch.await(2, TimeUnit.MINUTES);
                 if (!sseSeen) {
                     log.accept("Timed out waiting for SSE events");
-                    log.accept("Final assembly payload=" + completed.json());
+                    log.accept("Final assembly payload=" + completedJson);
                     failWithTimeline("SSE progress not observed", timeline);
                 }
 
-                JSONObject json = completed.json();
                 assertTrue("Assembly not completed",
-                        json.optString("ok", "").toUpperCase().contains("ASSEMBLY_COMPLETED"));
+                        completedJson.optString("ok", "").toUpperCase().contains("ASSEMBLY_COMPLETED"));
 
                 boolean resultSeen = resultLatch.await(2, TimeUnit.MINUTES);
+                if (!resultSeen) {
+                    try {
+                        AssemblyResponse latest = transloadit.getAssemblyByUrl(completed.getSslUrl());
+                        JSONObject latestJson = latest.json();
+                        log.accept("Latest assembly ok=" + latestJson.optString("ok"));
+                        JSONObject latestResults = latestJson.optJSONObject("results");
+                        if (latestResults != null) {
+                            log.accept("Latest assembly result keys=" + jsonObjectKeys(latestResults));
+                            JSONArray latestResize = latestResults.optJSONArray("resize");
+                            if (latestResize != null) {
+                                log.accept("Latest assembly resize results count=" + latestResize.length());
+                            } else {
+                                log.accept("Latest assembly resize results missing");
+                            }
+                        } else {
+                            log.accept("Latest assembly results missing");
+                        }
+                    } catch (Exception pollErr) {
+                        log.accept("Failed to poll latest assembly: " + pollErr);
+                    }
+                }
                 assertTrue("Timed out waiting for resize SSE results", resultSeen);
                 JSONArray results = resizeResults.get();
                 assertNotNull("Resize SSE payload missing", results);
@@ -455,5 +489,16 @@ public class SignatureProviderE2ETest {
             }
         }
         throw new AssertionError(sb.toString());
+    }
+
+    private static String jsonObjectKeys(JSONObject object) {
+        if (object == null) {
+            return "[]";
+        }
+        List<String> keys = new ArrayList<>();
+        for (Iterator<String> iterator = object.keys(); iterator.hasNext();) {
+            keys.add(iterator.next());
+        }
+        return keys.toString();
     }
 }
