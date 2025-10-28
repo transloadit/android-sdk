@@ -12,7 +12,18 @@ on:
 
 jobs:
   android:
+    name: ${{ matrix.name }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Gradle (Java 17)
+            java: '17'
+            run-script: false
+          - name: Docker Harness (Java 21)
+            java: '21'
+            run-script: true
     env:
       TRANSLOADIT_KEY: ${{ secrets.TRANSLOADIT_KEY }}
       TRANSLOADIT_SECRET: ${{ secrets.TRANSLOADIT_SECRET }}
@@ -20,19 +31,24 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: set up JDK 19
+      - name: Set up JDK ${{ matrix.java }}
         uses: actions/setup-java@v4
         with:
-          java-version: '19'
-          distribution: 'adopt'
+          java-version: ${{ matrix.java }}
+          distribution: 'temurin'
           cache: gradle
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Build with Gradle
+        if: ${{ matrix.run-script == false }}
         run: ./gradlew assemble
       - name: Run Tests
+        if: ${{ matrix.run-script == false }}
         run: ./gradlew check
+      - name: Run Dockerized Check
+        if: ${{ matrix.run-script == true }}
+        run: ./scripts/test-in-docker.sh check
 
   slack-on-failure:
     needs: [android]
