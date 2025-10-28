@@ -170,6 +170,23 @@ public class MainActivity extends AppCompatActivity {
 
 ```
 
+Listener callbacks (`onUploadProgress`, `onAssemblyFinished`, etc.) are dispatched on the Android main thread by default so UI components can be updated safely. To opt out—for example, to process updates off the UI thread—call `useDirectCallbacks()` or install a custom executor:
+
+```java
+AndroidAssembly assembly = transloadit.newAssembly(listener);
+assembly.useDirectCallbacks(); // run callbacks on the calling thread
+// or provide any Executor: assembly.setListenerCallbackExecutor(Executors.newSingleThreadExecutor());
+```
+
+## Migration guide (0.x → 1.0)
+
+- Replace `AndroidAsyncAssembly` with the new `AndroidAssembly` wrapper. It returns a `Future` from `saveAsync()` and reports lifecycle events through `AndroidAssemblyListener`.
+- Update listeners: `AssemblyProgressListener` and friends were removed. Implement `AndroidAssemblyListener` instead, which exposes upload progress, SSE results, and completion/error hooks.
+- Callbacks now fire on the Android main thread by default. If you relied on background delivery, call `assembly.useDirectCallbacks()` or `assembly.setListenerCallbackExecutor(...)`.
+- Prefer external signature generation via `new AndroidTransloadit(key, signatureProvider)`. Passing the secret into your APK still works but is no longer recommended for production.
+- Tests, CI, and examples now execute against the bundled `chameleon.jpg` fixture and require `result: true` on resize steps so SSE result payloads arrive consistently.
+- The SDK depends on `com.transloadit.sdk:transloadit:2.2.4` or newer. Ensure any overrides or local builds are upgraded in lockstep.
+
 ## Example
 
 For fully working examples take a look at [examples/](https://github.com/transloadit/android-sdk/tree/main/examples).
