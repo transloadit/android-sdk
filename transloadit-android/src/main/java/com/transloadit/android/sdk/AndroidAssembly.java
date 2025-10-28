@@ -32,6 +32,10 @@ import io.tus.java.client.TusURLStore;
  * rerouted to a custom executor via {@link #setListenerCallbackExecutor(Executor)}.
  */
 public class AndroidAssembly extends Assembly implements Closeable {
+    /**
+     * SharedPreferences key where resumable upload URLs are cached.
+     * NOTE: renamed from "tansloadit_" in 0.x; existing persisted uploads will not resume automatically.
+     */
     public static final String DEFAULT_PREFERENCE_NAME = "transloadit_android_sdk_urls"; // NOTE: renamed from "tansloadit_" in 0.x; existing persisted uploads will not resume automatically.
 
     private final Context context;
@@ -40,6 +44,13 @@ public class AndroidAssembly extends Assembly implements Closeable {
     private final Executor mainThreadExecutor;
     private volatile Executor listenerExecutor;
 
+    /**
+     * Creates a new Android-aware assembly wrapper.
+     *
+     * @param transloadit underlying SDK instance used for network calls
+     * @param listener callback receiver for upload lifecycle events
+     * @param context Android context used for persistence and main-thread dispatching
+     */
     public AndroidAssembly(AndroidTransloadit transloadit, AndroidAssemblyListener listener, Context context) {
         super(transloadit);
         this.context = context.getApplicationContext();
@@ -52,6 +63,8 @@ public class AndroidAssembly extends Assembly implements Closeable {
 
     /**
      * Applies a shared preferences backed Tus URL store for resumable uploads.
+     *
+     * @param name preferences file name that stores resumable upload URLs
      */
     public void setPreferenceName(String name) {
         SharedPreferences pref = context.getSharedPreferences(name, Context.MODE_PRIVATE);
@@ -61,11 +74,19 @@ public class AndroidAssembly extends Assembly implements Closeable {
 
     /**
      * Runs the assembly asynchronously, returning the initial save response.
+     *
+     * @return {@link Future} that resolves with the initial {@link AssemblyResponse}
      */
     public Future<AssemblyResponse> saveAsync() {
         return saveAsync(true);
     }
 
+    /**
+     * Runs the assembly asynchronously with optional resumable uploads.
+     *
+     * @param isResumable whether resumable uploads should be enabled
+     * @return {@link Future} that resolves with the initial {@link AssemblyResponse}
+     */
     public Future<AssemblyResponse> saveAsync(boolean isResumable) {
         setAssemblyListener(createListenerAdapter());
         Callable<AssemblyResponse> task = () -> {
@@ -82,18 +103,34 @@ public class AndroidAssembly extends Assembly implements Closeable {
         return executor.submit(task);
     }
 
+    /**
+     * Overrides the executor used for dispatching listener callbacks.
+     *
+     * @param executor executor that should receive listener callbacks
+     */
     public void setListenerCallbackExecutor(Executor executor) {
         this.listenerExecutor = Objects.requireNonNull(executor, "listener executor cannot be null");
     }
 
+    /**
+     * Routes listener callbacks to Android's main thread.
+     */
     public void useMainThreadCallbacks() {
         this.listenerExecutor = this.mainThreadExecutor;
     }
 
+    /**
+     * Routes listener callbacks directly on the worker thread.
+     */
     public void useDirectCallbacks() {
         this.listenerExecutor = Runnable::run;
     }
 
+    /**
+     * Attempts to pause uploads and reports status via the listener.
+     *
+     * @return {@code true} if the pause operation succeeded
+     */
     public boolean pauseUploadsSafely() {
         try {
             super.pauseUploads();
@@ -104,6 +141,11 @@ public class AndroidAssembly extends Assembly implements Closeable {
         }
     }
 
+    /**
+     * Attempts to resume uploads and reports status via the listener.
+     *
+     * @return {@code true} if the resume operation succeeded
+     */
     public boolean resumeUploadsSafely() {
         try {
             super.resumeUploads();

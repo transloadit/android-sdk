@@ -37,14 +37,28 @@ public class AndroidAssemblyUploadWorker extends Worker {
 
     private static final Charset UTF8 = Charset.forName("UTF-8");
 
+    /** Output key exposing the created assembly id. */
     public static final String OUTPUT_ASSEMBLY_ID = "assembly_id";
+    /** Output key exposing the HTTP URL of the assembly. */
     public static final String OUTPUT_ASSEMBLY_URL = "assembly_url";
+    /** Output key exposing the HTTPS URL of the assembly. */
     public static final String OUTPUT_SSL_URL = "assembly_ssl_url";
 
+    /**
+     * Creates a new worker instance.
+     *
+     * @param appContext application context used for dependency resolution
+     * @param workerParams WorkManager parameters for this execution
+     */
     public AndroidAssemblyUploadWorker(@NonNull Context appContext, @NonNull WorkerParameters workerParams) {
         super(appContext, workerParams);
     }
 
+    /**
+     * Executes the assembly upload synchronously on a worker thread.
+     *
+     * @return WorkManager {@link Result} describing the outcome
+     */
     @NonNull
     @Override
     public Result doWork() {
@@ -169,6 +183,12 @@ public class AndroidAssemblyUploadWorker extends Worker {
         return Result.success(output);
     }
 
+    /**
+     * Maps assembly exceptions to WorkManager outcomes.
+     *
+     * @param error failure emitted by the assembly
+     * @return {@link Result#failure(Data)} for deterministic errors, {@link Result#retry()} otherwise
+     */
     private Result handleFailure(Exception error) {
         if (error instanceof RequestException || error instanceof LocalOperationException) {
             Data output = new Data.Builder()
@@ -179,6 +199,14 @@ public class AndroidAssemblyUploadWorker extends Worker {
         return Result.retry();
     }
 
+    /**
+     * Builds a signature provider that proxies calls to a remote HTTP endpoint.
+     *
+     * @param url URL of the signature provider
+     * @param method HTTP method to use (defaults to POST)
+     * @param headers headers to include in requests
+     * @return {@link SignatureProvider} that fetches signatures over HTTP
+     */
     private SignatureProvider buildSignatureProvider(String url, String method, java.util.Map<String, String> headers) {
         final String httpMethod = method == null ? "POST" : method.toUpperCase();
         final java.util.Map<String, String> requestHeaders = headers == null ? java.util.Collections.emptyMap() : headers;

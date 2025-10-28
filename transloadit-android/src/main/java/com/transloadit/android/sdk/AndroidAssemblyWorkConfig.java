@@ -58,66 +58,115 @@ public final class AndroidAssemblyWorkConfig {
         this.signatureProviderHeaders = Collections.unmodifiableMap(new LinkedHashMap<>(builder.signatureProviderHeaders));
     }
 
+    /**
+     * @return Transloadit API key used for the assembly.
+     */
     public String getAuthKey() {
         return authKey;
     }
 
+    /**
+     * @return Transloadit API secret, or {@code null} when using an external signature provider.
+     */
     public String getAuthSecret() {
         return authSecret;
     }
 
+    /**
+     * @return URL of the external signature provider, if configured.
+     */
     @Nullable
     public String getSignatureProviderUrl() {
         return signatureProviderUrl;
     }
 
+    /**
+     * @return HTTP method used when calling the signature provider.
+     */
     @Nullable
     public String getSignatureProviderMethod() {
         return signatureProviderMethod;
     }
 
+    /**
+     * @return additional headers attached to signature provider requests.
+     */
     public Map<String, String> getSignatureProviderHeaders() {
         return signatureProviderHeaders;
     }
 
+    /**
+     * @return Transloadit API host URL.
+     */
     public String getHostUrl() {
         return hostUrl;
     }
 
+    /**
+     * @return {@code true} when resumable uploads are enabled.
+     */
     public boolean isResumable() {
         return resumable;
     }
 
+    /**
+     * @return {@code true} when the worker should wait for assembly completion.
+     */
     public boolean shouldWaitForCompletion() {
         return waitForCompletion;
     }
 
+    /**
+     * @return maximum time in milliseconds to wait for completion status updates.
+     */
     public long getCompletionTimeoutMillis() {
         return completionTimeoutMillis;
     }
 
+    /**
+     * @return maximum time in milliseconds to wait for the initial save response.
+     */
     public long getUploadTimeoutMillis() {
         return uploadTimeoutMillis;
     }
 
+    /**
+     * @return SharedPreferences file name used for resumable upload metadata.
+     */
     public String getPreferenceName() {
         return preferenceName;
     }
 
+    /**
+     * @return assembly params payload (steps, fields, options).
+     */
     public JSONObject getParams() {
         return params;
     }
 
+    /**
+     * @return immutable list of files to upload.
+     */
     public List<FileSpec> getFiles() {
         return files;
     }
 
+    /**
+     * Serializes this configuration into WorkManager input data.
+     *
+     * @return {@link Data} representation of the config
+     */
     public Data toInputData() {
         Data.Builder builder = new Data.Builder();
         builder.putString(CONFIG_JSON_KEY, toJson().toString());
         return builder.build();
     }
 
+    /**
+     * Serializes the configuration to JSON for persistence.
+     *
+     * @return JSON representation of the config
+     */
     public JSONObject toJson() {
         try {
             JSONObject json = new JSONObject();
@@ -155,6 +204,11 @@ public final class AndroidAssemblyWorkConfig {
         }
     }
 
+    /**
+     * Creates a WorkManager request that uploads the configured assembly.
+     *
+     * @return configured {@link OneTimeWorkRequest}
+     */
     public OneTimeWorkRequest toWorkRequest() {
         Constraints constraints = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -165,6 +219,12 @@ public final class AndroidAssemblyWorkConfig {
                 .build();
     }
 
+    /**
+     * Restores a configuration from its JSON form.
+     *
+     * @param json serialized configuration
+     * @return parsed {@link AndroidAssemblyWorkConfig}
+     */
     public static AndroidAssemblyWorkConfig fromJson(JSONObject json) {
         try {
             String version = json.optString("version", "");
@@ -214,6 +274,12 @@ public final class AndroidAssemblyWorkConfig {
         }
     }
 
+    /**
+     * Restores a configuration from WorkManager input data.
+     *
+     * @param data input data provided to the worker
+     * @return parsed {@link AndroidAssemblyWorkConfig}
+     */
     public static AndroidAssemblyWorkConfig fromInputData(Data data) {
         String json = data.getString(CONFIG_JSON_KEY);
         if (json == null) {
@@ -226,16 +292,32 @@ public final class AndroidAssemblyWorkConfig {
         }
     }
 
+    /**
+     * Creates a new builder configured with inline credentials.
+     *
+     * @param authKey Transloadit API key
+     * @param authSecret Transloadit API secret
+     * @return builder instance
+     */
     public static Builder newBuilder(@NonNull String authKey, @NonNull String authSecret) {
         Builder builder = new Builder(authKey);
         builder.authSecret(authSecret);
         return builder;
     }
 
+    /**
+     * Creates a new builder that expects an external signature provider.
+     *
+     * @param authKey Transloadit API key
+     * @return builder instance
+     */
     public static Builder newBuilder(@NonNull String authKey) {
         return new Builder(authKey);
     }
 
+    /**
+     * Builder for {@link AndroidAssemblyWorkConfig}.
+     */
     public static final class Builder {
         static final long DEFAULT_COMPLETION_TIMEOUT_MS = TimeUnit.MINUTES.toMillis(15);
         static final long DEFAULT_UPLOAD_TIMEOUT_MS = TimeUnit.MINUTES.toMillis(15);
@@ -258,11 +340,23 @@ public final class AndroidAssemblyWorkConfig {
             this.authKey = Objects.requireNonNull(authKey, "authKey");
         }
 
+        /**
+         * Sets the Transloadit API secret for inline signing.
+         *
+         * @param authSecret secret corresponding to {@code authKey}
+         * @return this builder
+         */
         public Builder authSecret(@Nullable String authSecret) {
             this.authSecret = authSecret;
             return this;
         }
 
+        /**
+         * Overrides the Transloadit API host URL.
+         *
+         * @param hostUrl custom host URL, or {@code null} to use the default
+         * @return this builder
+         */
         public Builder hostUrl(@Nullable String hostUrl) {
             if (hostUrl != null && !hostUrl.isEmpty()) {
                 this.hostUrl = hostUrl;
@@ -270,16 +364,34 @@ public final class AndroidAssemblyWorkConfig {
             return this;
         }
 
+        /**
+         * Enables or disables resumable uploads.
+         *
+         * @param resumable {@code true} to enable tus resumable uploads
+         * @return this builder
+         */
         public Builder resumable(boolean resumable) {
             this.resumable = resumable;
             return this;
         }
 
+        /**
+         * Configures whether the worker should wait for assembly completion.
+         *
+         * @param waitForCompletion {@code true} to wait for completion before finishing the job
+         * @return this builder
+         */
         public Builder waitForCompletion(boolean waitForCompletion) {
             this.waitForCompletion = waitForCompletion;
             return this;
         }
 
+        /**
+         * Sets the timeout for waiting on completion status updates.
+         *
+         * @param completionTimeoutMillis timeout in milliseconds
+         * @return this builder
+         */
         public Builder completionTimeoutMillis(long completionTimeoutMillis) {
             if (completionTimeoutMillis <= 0) {
                 throw new IllegalArgumentException("completionTimeoutMillis must be positive");
@@ -288,6 +400,12 @@ public final class AndroidAssemblyWorkConfig {
             return this;
         }
 
+        /**
+         * Sets the timeout for waiting on the initial upload response.
+         *
+         * @param uploadTimeoutMillis timeout in milliseconds
+         * @return this builder
+         */
         public Builder uploadTimeoutMillis(long uploadTimeoutMillis) {
             if (uploadTimeoutMillis <= 0) {
                 throw new IllegalArgumentException("uploadTimeoutMillis must be positive");
@@ -296,11 +414,23 @@ public final class AndroidAssemblyWorkConfig {
             return this;
         }
 
+        /**
+         * Overrides the SharedPreferences file name used for tus metadata.
+         *
+         * @param preferenceName name of the preference file
+         * @return this builder
+         */
         public Builder preferenceName(@NonNull String preferenceName) {
             this.preferenceName = Objects.requireNonNull(preferenceName, "preferenceName");
             return this;
         }
 
+        /**
+         * Copies assembly params into the configuration.
+         *
+         * @param params JSON payload containing steps, fields and options
+         * @return this builder
+         */
         public Builder params(@Nullable JSONObject params) {
             if (params != null) {
                 try {
@@ -314,6 +444,12 @@ public final class AndroidAssemblyWorkConfig {
             return this;
         }
 
+        /**
+         * Parses assembly params from a JSON string.
+         *
+         * @param paramsJson JSON string representation of assembly params
+         * @return this builder
+         */
         public Builder paramsJson(@NonNull String paramsJson) {
             try {
                 this.params = new JSONObject(paramsJson);
@@ -323,6 +459,13 @@ public final class AndroidAssemblyWorkConfig {
             return this;
         }
 
+        /**
+         * Adds a local file to be uploaded with the assembly.
+         *
+         * @param file file on disk
+         * @param field field name for the file
+         * @return this builder
+         */
         public Builder addFile(@NonNull File file, @NonNull String field) {
             Objects.requireNonNull(file, "file");
             Objects.requireNonNull(field, "field");
@@ -330,31 +473,46 @@ public final class AndroidAssemblyWorkConfig {
             return this;
         }
 
-    /**
-     * Configures an external signature provider endpoint. When specified, {@link AndroidAssemblyUploadWorker}
-     * will fetch signatures over HTTP instead of using a locally supplied secret.
-     */
-    public Builder signatureProvider(@NonNull String url) {
+        /**
+         * Configures an external signature provider endpoint. When specified,
+         * {@link AndroidAssemblyUploadWorker} will fetch signatures over HTTP instead of using a locally supplied secret.
+         *
+         * @param url URL of the signature provider endpoint
+         * @return this builder
+         */
+        public Builder signatureProvider(@NonNull String url) {
             this.signatureProviderUrl = Objects.requireNonNull(url, "url");
             return this;
         }
 
-    /**
-     * Overrides the HTTP method used for the signature provider request. Defaults to {@code POST}.
-     */
-    public Builder signatureProviderMethod(@NonNull String method) {
+        /**
+         * Overrides the HTTP method used for the signature provider request. Defaults to {@code POST}.
+         *
+         * @param method HTTP method to use
+         * @return this builder
+         */
+        public Builder signatureProviderMethod(@NonNull String method) {
             this.signatureProviderMethod = Objects.requireNonNull(method, "method").toUpperCase();
             return this;
         }
 
-    /**
-     * Adds a header that will be included when contacting the external signature provider.
-     */
-    public Builder addSignatureProviderHeader(@NonNull String key, @NonNull String value) {
+        /**
+         * Adds a header that will be included when contacting the external signature provider.
+         *
+         * @param key header name
+         * @param value header value
+         * @return this builder
+         */
+        public Builder addSignatureProviderHeader(@NonNull String key, @NonNull String value) {
             this.signatureProviderHeaders.put(Objects.requireNonNull(key, "key"), Objects.requireNonNull(value, "value"));
             return this;
         }
 
+        /**
+         * Validates the provided data and builds the immutable configuration.
+         *
+         * @return finalized {@link AndroidAssemblyWorkConfig}
+         */
         public AndroidAssemblyWorkConfig build() {
             if ((authSecret == null || authSecret.isEmpty()) && signatureProviderUrl == null) {
                 throw new IllegalStateException("Either authSecret or signatureProvider must be provided");
@@ -366,6 +524,9 @@ public final class AndroidAssemblyWorkConfig {
         }
     }
 
+    /**
+     * Immutable description of a file that should be uploaded.
+     */
     public static final class FileSpec {
         private final String path;
         private final String field;
@@ -375,10 +536,16 @@ public final class AndroidAssemblyWorkConfig {
             this.field = field;
         }
 
+        /**
+         * @return absolute file path on disk.
+         */
         public String getPath() {
             return path;
         }
 
+        /**
+         * @return form field name associated with the file.
+         */
         public String getField() {
             return field;
         }
