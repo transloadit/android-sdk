@@ -184,6 +184,24 @@ Run the unit test suite inside Docker to avoid installing the Android toolchain 
 
 The script builds a lightweight image with the necessary Android command-line tools, caches Gradle downloads inside `.android-docker/`, and runs `./gradlew test` with the SDK preconfigured. If you use Colima, the script will automatically fall back to `~/.colima/default/docker.sock` when the default Docker socket is unavailable.
 
+### End-to-end signature provider verification
+
+`transloadit-android/src/test/java/com/transloadit/android/sdk/SignatureProviderE2ETest` drives a real upload against Transloadit to exercise the external signature-provider workflow that the SDK ships for production apps (plus Tus pause/resume, SSE progress/results, etc.). The test is opt-in and executes when `ANDROID_SDK_E2E=true` and both `TRANSLOADIT_KEY` and `TRANSLOADIT_SECRET` are present. To run it locally:
+
+1. Create a `.env` file in the repository root (or export the variables directly) containing:
+   ```
+   ANDROID_SDK_E2E=1
+   TRANSLOADIT_KEY=your-key
+   TRANSLOADIT_SECRET=your-secret
+   ```
+2. Execute the docker harness with the desired Gradle task, for example:
+   ```bash
+   ./scripts/test-in-docker.sh :transloadit-android:testDebugUnitTest --rerun-tasks
+   ```
+   The script automatically passes variables from `.env` into the container.
+
+The GitHub Actions workflow (`.github/workflows/CI.yml`) sets the same environment variables from repository secrets, so pull requests and the `main` branch continuously run this end-to-end verification alongside the Java SDK’s signature-parity tests.
+
 ## Documentation
 
 See [Javadoc](https://javadoc.io/doc/com.transloadit.android.sdk/transloadit-android/latest/index.html) for full API documentation.
