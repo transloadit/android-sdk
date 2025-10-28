@@ -90,7 +90,7 @@ public class SignatureProviderE2ETest {
         Assume.assumeTrue("TRANSLOADIT_SECRET missing", !isNullOrEmpty(transloaditSecret));
 
         Context context = ApplicationProvider.getApplicationContext();
-        File upload = createTempUpload(context, 32 * 1024 * 1024); // 2 MiB to ensure pause window
+        File upload = createTempUpload(context, 32 * 1024 * 1024); // 32 MiB to ensure pause window
 
         AtomicBoolean progressObserved = new AtomicBoolean(false);
         AtomicBoolean uploadFinished = new AtomicBoolean(false);
@@ -453,29 +453,50 @@ public class SignatureProviderE2ETest {
     }
 
     private static File createTempUpload(Context context, int sizeBytes) throws IOException {
-        File file = File.createTempFile("transloadit-e2e", ".bin", context.getCacheDir());
-        try (InputStream in = SignatureProviderE2ETest.class.getResourceAsStream("/chameleon.jpg");
-             FileOutputStream fos = new FileOutputStream(file);
-             OutputStream os = new BufferedOutputStream(fos)) {
+        File file = File.createTempFile("transloadit-e2e", ".jpg", context.getCacheDir());
+        byte[] fixtureBytes;
+        try (InputStream in = SignatureProviderE2ETest.class.getResourceAsStream("/chameleon.jpg")) {
             if (in == null) {
                 throw new IOException("Embedded chameleon.jpg fixture missing");
             }
-            byte[] buffer = new byte[8192];
-            int read;
-            while ((read = in.read(buffer)) != -1) {
-                os.write(buffer, 0, read);
-            }
-            long current = file.length();
-            if (current < sizeBytes) {
-                byte[] padding = new byte[8192];
-                while (current < sizeBytes) {
-                    int toWrite = (int) Math.min(padding.length, sizeBytes - current);
-                    os.write(padding, 0, toWrite);
-                    current += toWrite;
-                }
-            }
+            fixtureBytes = readFully(in);
         }
+        if (fixtureBytes.length == 0) {
+            throw new IOException("Embedded chameleon.jpg fixture is empty");
+        }
+
+        try (FileOutputStream fos = new FileOutputStream(file);
+             OutputStream os = new BufferedOutputStream(fos)) {
+            os.write(fixtureBytes);
+            long current = fixtureBytes.length;
+            while (current < sizeBytes) {
+                int toWrite = (int) Math.min(fixtureBytes.length, sizeBytes - current);
+                os.write(fixtureBytes, 0, toWrite);
+                current += toWrite;
+            }
+            os.flush();
+        }
+
         return file;
+    }
+
+    private static byte[] readFully(InputStream inputStream) throws IOException {
+        byte[] buffer = new byte[8192];
+        int read;
+        int offset = 0;
+        byte[] data = new byte[buffer.length];
+        while ((read = inputStream.read(buffer)) != -1) {
+            if (offset + read > data.length) {
+                byte[] newData = new byte[Math.max(data.length * 2, offset + read)];
+                System.arraycopy(data, 0, newData, 0, offset);
+                data = newData;
+            }
+            System.arraycopy(buffer, 0, data, offset, read);
+            offset += read;
+        }
+        byte[] result = new byte[offset];
+        System.arraycopy(data, 0, result, 0, offset);
+        return result;
     }
 
     private static boolean parseBoolean(String value) {
