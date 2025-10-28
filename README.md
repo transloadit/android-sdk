@@ -32,16 +32,6 @@ implementation 'com.transloadit.android.sdk:transloadit-android:1.0.0'
 
 > ℹ️ Signature-based authentication requires `com.transloadit.sdk:transloadit` version **2.2.3** or newer. When developing locally alongside the Java SDK, place both repositories next to each other (`../java-sdk`) and the Gradle build will automatically use the local java-sdk project via dependency substitution.
 
-### Debugging SSE Locally
-
-To reproduce the current Smart CDN SSE regression without waiting for production to flake:
-
-- Export `TRANSLOADIT_HOST` with the base URL of the API instance you want to target (for example `http://localhost:3000` when running a local uploader).
-- Set `ANDROID_SDK_FORCE_RESULTLESS=1` before running the E2E test suite to instruct the test to request a pipeline that produces no results, mirroring the failure mode.
-- With the environment prepared, run `ANDROID_SDK_E2E=1 ./scripts/test-in-docker.sh :transloadit-android:testDebugUnitTest --rerun-tasks` to hit the local stack and capture the logs printed by `SignatureProviderE2ETest`.
-
-The test still fails by design in this mode, but it now emits detailed timing logs and the final assembly payload so the API behaviour can be inspected locally.
-
 ## Usage
 
 All interactions with the SDK begin with the `com.transloadit.android.sdk.AndroidTransloadit` class.
