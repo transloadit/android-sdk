@@ -27,6 +27,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -198,6 +199,7 @@ public class SignatureProviderE2ETest {
                 resize.put("height", 32);
                 resize.put("resize_strategy", "fit");
                 resize.put("format", "jpg");
+                resize.put("result", true);
                 assembly.addStep("resize", "/image/resize", resize);
 
                 Future<AssemblyResponse> future = assembly.saveAsync(true);
@@ -452,14 +454,25 @@ public class SignatureProviderE2ETest {
 
     private static File createTempUpload(Context context, int sizeBytes) throws IOException {
         File file = File.createTempFile("transloadit-e2e", ".bin", context.getCacheDir());
-        try (FileOutputStream fos = new FileOutputStream(file);
+        try (InputStream in = SignatureProviderE2ETest.class.getResourceAsStream("/chameleon.jpg");
+             FileOutputStream fos = new FileOutputStream(file);
              OutputStream os = new BufferedOutputStream(fos)) {
+            if (in == null) {
+                throw new IOException("Embedded chameleon.jpg fixture missing");
+            }
             byte[] buffer = new byte[8192];
-            int written = 0;
-            while (written < sizeBytes) {
-                int toWrite = Math.min(buffer.length, sizeBytes - written);
-                os.write(buffer, 0, toWrite);
-                written += toWrite;
+            int read;
+            while ((read = in.read(buffer)) != -1) {
+                os.write(buffer, 0, read);
+            }
+            long current = file.length();
+            if (current < sizeBytes) {
+                byte[] padding = new byte[8192];
+                while (current < sizeBytes) {
+                    int toWrite = (int) Math.min(padding.length, sizeBytes - current);
+                    os.write(padding, 0, toWrite);
+                    current += toWrite;
+                }
             }
         }
         return file;
