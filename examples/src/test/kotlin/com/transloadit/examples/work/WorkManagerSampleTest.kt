@@ -21,6 +21,11 @@ import kotlin.random.Random
 class WorkManagerSampleTest {
     private lateinit var context: Context
 
+    companion object {
+        @Volatile
+        private var workManagerInitialized = false
+    }
+
     @Before
     fun setUp() {
         val e2eEnabled = System.getenv("ANDROID_SDK_E2E")?.toBoolean() == true
@@ -29,10 +34,17 @@ class WorkManagerSampleTest {
         val config = Configuration.Builder()
             .setExecutor(SynchronousExecutor())
             .build()
-        try {
-            WorkManagerTestInitHelper.initializeTestWorkManager(context, config)
-        } catch (illegalState: IllegalStateException) {
-            // Already initialized for this test process; ignore so subsequent tests can run.
+        if (!workManagerInitialized) {
+            synchronized(WorkManagerSampleTest::class) {
+                if (!workManagerInitialized) {
+                    try {
+                        WorkManagerTestInitHelper.initializeTestWorkManager(context, config)
+                    } catch (_: IllegalStateException) {
+                        // Already initialized for this process.
+                    }
+                    workManagerInitialized = true
+                }
+            }
         }
     }
 
