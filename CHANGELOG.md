@@ -2,7 +2,7 @@
 
 ## 0.2.0 / TO BE RELEASED
 
-Below 1.0 SemVer allows us to make breaking changes, and we have shipped a number of them in this release.
+Below 1.0 SemVer allows us to make breaking changes, and we have shipped a number of them in this release, please review carefully.
 
 - **Breaking:** Removed dependency on the Java SDK's deprecated `AsyncAssembly` API and introduced a new `AndroidAssembly` wrapper built on the modern SSE-based workflow
 - **Breaking:** SharedPreferences backing resumable uploads now uses `transloadit_android_sdk_urls` (previously typo’d `tansloadit_android_sdk_urls`). Existing persisted tus entries will need manual migration if backward compatibility is required.
