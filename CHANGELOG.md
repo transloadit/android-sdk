@@ -1,10 +1,8 @@
-### 1.0.1 / 2025-10-27
+### 1.0.0 / TO BE RELEASED
 
-- Upgrade dependency to `com.transloadit.sdk:transloadit:2.2.3` to include the delayed-result drain fix and keep SSE parity with the upstream Java SDK.
-- Keep test harness aligned with the Java SDK release that ships the stabilized SSE behaviour.
-
-### 1.0.0 / 2025-10-15
-
+- Upgrade dependency to `com.transloadit.sdk:transloadit:2.2.4` to align with the latest Java SDK release and pick up the simplified SSE handling.
+- Bundle `chameleon.jpg` as an embedded fixture so Smart CDN parity tests can run without network access, and always request `result: true` on the resize step to surface outputs via SSE.
+- Keep the Android Docker and CI parity harness aligned with the Java SDK release that ships the stabilized SSE behaviour, ensuring both suites exercise the same SSE fixtures.
 - **Breaking:** Removed dependency on the Java SDK's deprecated `AsyncAssembly` API and introduced a new `AndroidAssembly` wrapper built on the modern SSE-based workflow
 - Added `AndroidAssemblyListener` to replace the old `AssemblyProgressListener`
 - Updated samples, documentation, and tests to use the new asynchronous API
