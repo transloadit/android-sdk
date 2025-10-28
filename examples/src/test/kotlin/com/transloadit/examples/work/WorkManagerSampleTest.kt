@@ -18,6 +18,8 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [28])
 class WorkManagerSampleTest {
     private lateinit var context: Context
 
@@ -108,3 +110,6 @@ class WorkManagerSampleTest {
     }
 
 }
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
