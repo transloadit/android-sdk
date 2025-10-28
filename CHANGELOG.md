@@ -1,6 +1,6 @@
 ### 1.0.1 / 2025-10-27
 
-- Upgrade dependency to `com.transloadit.sdk:transloadit:2.2.2` to pick up the SSE reconnect fix introduced upstream and unblock `SignatureProviderE2ETest`.
+- Upgrade dependency to `com.transloadit.sdk:transloadit:2.2.3` to include the delayed-result drain fix and keep SSE parity with the upstream Java SDK.
 - Keep test harness aligned with the Java SDK release that ships the stabilized SSE behaviour.
 
 ### 1.0.0 / 2025-10-15
