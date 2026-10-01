@@ -70,12 +70,17 @@ SignatureProvider signatureProvider = new SignatureProvider() {
         conn.setRequestProperty("Content-Type", "application/json");
         conn.getOutputStream().write(paramsJson.getBytes());
 
-        // Read the signature from your backend's response
-        BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-        String responseJson = reader.readLine();
-        reader.close();
+        // Read the complete JSON response from your backend
+        StringBuilder responseJson = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+            char[] buffer = new char[1024];
+            int length;
+            while ((length = reader.read(buffer)) != -1) {
+                responseJson.append(buffer, 0, length);
+            }
+        }
 
-        return new JSONObject(responseJson).getString("signature"); // Returns "sha384:..."
+        return new JSONObject(responseJson.toString()).getString("signature"); // Returns "sha384:..."
     }
 };
 
