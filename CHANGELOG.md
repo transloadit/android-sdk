@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.1 / 2026-10-02
+
+- Fixed the published POM, which declared no dependencies. Apps no longer have to add the Java SDK, the tus clients, and WorkManager by hand ([#23](https://github.com/transloadit/android-sdk/issues/23)).
+- Assembly status polling now reads the returned `assembly_ssl_url` directly instead of asking the `SignatureProvider` to sign it, so a backend that only signs Assembly creation works with `waitForCompletion(true)`.
+- WorkManager uploads succeed right away when the Assembly has already completed, and fail right away for aborted, canceled, or errored Assemblies instead of retrying. Failed work keeps the available Assembly identifiers in its output.
+- The README's WorkManager example now uses a signing endpoint instead of the Auth Secret, and signing is documented as available since Java SDK 2.1.0.
+
 ## 0.2.0 / 2025-10-28
 
 Below 1.0 SemVer allows us to make breaking changes, and we have shipped a number of them in this release, please review carefully.
