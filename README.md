@@ -35,7 +35,7 @@ implementation 'com.transloadit.android.sdk:transloadit-android:0.2.0'
 </dependency>
 ```
 
-> ℹ️ Signature-based authentication requires `com.transloadit.sdk:transloadit` version **2.2.3** or newer. When developing locally alongside the Java SDK, place both repositories next to each other (`../java-sdk`) and the Gradle build will automatically use the local java-sdk project via dependency substitution.
+> ℹ️ Signature-based authentication was introduced in `com.transloadit.sdk:transloadit` version **2.1.0** ([java-sdk#95](https://github.com/transloadit/java-sdk/pull/95)). Android SDK 0.2 uses **2.2.4** for its updated SSE handling. When developing locally alongside the Java SDK, place both repositories next to each other (`../java-sdk`) and set `ANDROID_SDK_USE_LOCAL_JAVA_SDK=1` to use the local java-sdk project via dependency substitution.
 
 ## Usage
 
@@ -67,14 +67,20 @@ SignatureProvider signatureProvider = new SignatureProvider() {
         HttpURLConnection conn = (HttpURLConnection) new URL("https://your-backend.com/sign").openConnection();
         conn.setRequestMethod("POST");
         conn.setDoOutput(true);
+        conn.setRequestProperty("Content-Type", "application/json");
         conn.getOutputStream().write(paramsJson.getBytes());
 
-        // Read the signature from your backend's response
-        BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-        String signature = reader.readLine();
-        reader.close();
+        // Read the complete JSON response from your backend
+        StringBuilder responseJson = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+            char[] buffer = new char[1024];
+            int length;
+            while ((length = reader.read(buffer)) != -1) {
+                responseJson.append(buffer, 0, length);
+            }
+        }
 
-        return signature; // Should return something like "sha384:..."
+        return new JSONObject(responseJson.toString()).getString("signature"); // Returns "sha384:..."
     }
 };
 
@@ -88,7 +94,7 @@ Your backend should implement an endpoint that:
 2. Signs the parameters using your Transloadit secret
 3. Returns the signature
 
-Example backend implementation (Node.js):
+Example backend implementation (Node.js), with `req.body` containing the unchanged UTF-8 request text supplied by your text/raw-body middleware:
 
 ```javascript
 const crypto = require('crypto')
@@ -100,7 +106,7 @@ app.post('/sign', authenticate, (req, res) => {
     .update(Buffer.from(paramsJson, 'utf-8'))
     .digest('hex')
 
-  res.send(`sha384:${signature}`)
+  res.json({ signature: `sha384:${signature}` })
 })
 ```
 
@@ -214,14 +220,19 @@ assembly.useDirectCallbacks(); // run callbacks on the calling thread
 
 ```java
 AndroidAssemblyWorkConfig config = AndroidAssemblyWorkConfig
-    .newBuilder("TRANSLOADIT_KEY", "TRANSLOADIT_SECRET")
+    .newBuilder("TRANSLOADIT_KEY")
+    .signatureProvider("https://your-backend.com/sign")
+    .addSignatureProviderHeader("Authorization", "Bearer " + sessionToken)
     .paramsJson(paramsJsonString)
     .preferenceName("my_transloadit_store")
     .addFile(new File(context.getCacheDir(), "photo.jpg"), "image")
+    .waitForCompletion(true)
     .build();
 
 WorkManager.getInstance(context).enqueue(config.toWorkRequest());
 ```
+
+The WorkManager signing endpoint must return a JSON object with a `signature` field, as in the backend example above. The session token must be valid when the worker requests the signature.
 
 `AndroidAssemblyUploadWorker` waits for uploads (and, optionally, SSE completion) on a background thread so your app can survive process death or move long-running jobs out of the foreground.
 

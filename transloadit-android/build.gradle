@@ -1,4 +1,5 @@
 plugins {
+    id 'maven-publish'
     id 'signing'
 }
 
@@ -40,16 +41,20 @@ android {
         targetCompatibility JavaVersion.VERSION_11
     }
     namespace 'com.transloadit.sdk'
+    publishing {
+        singleVariant('release')
+    }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.transloadit.sdk:transloadit:2.2.4'
+    api 'com.transloadit.sdk:transloadit:2.2.4'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
     implementation 'io.tus.android.client:tus-android-client:0.1.10'
     implementation 'io.tus.java.client:tus-java-client:0.5.1'
     implementation 'org.jetbrains:annotations:23.0.0'
-    implementation 'androidx.work:work-runtime:2.9.0'
+    api 'androidx.work:work-runtime:2.9.0'
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.mockito:mockito-core:4.8.0'
     testImplementation 'org.mock-server:mockserver-junit-rule:5.15.0'
@@ -119,16 +124,13 @@ publishing {
     publications {
         androidRelease(MavenPublication) {
             afterEvaluate {
-                from components.findByName('release')
+                from components.release
                 groupId project.getGroup()
                 artifactId 'transloadit-android'
                 description project.getDescription()
                 version project.getVersion()
                 artifact sourcesJar
                 artifact javadocJar
-                artifact (project.layout.buildDirectory.dir('outputs/aar/transloadit-android-release.aar')) {
-                    builtBy assemble
-                }
                 pom.withXml {
                     def root = asNode()
                     root.appendNode('description', project.getDescription())
@@ -145,4 +147,42 @@ signing {
     def signingKey = System.getenv("SIGNING_KEY_AMORED")
     useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
     sign publishing.publications.androidRelease
+}
+
+afterEvaluate {
+    def generatePom = tasks.named('generatePomFileForAndroidReleasePublication')
+    def verifyPublishedPom = tasks.register('verifyPublishedPom') {
+        group = 'verification'
+        description = 'Checks the generated release POM includes all runtime dependencies.'
+        dependsOn generatePom
+        doLast {
+            def pom = new XmlSlurper().parse(generatePom.get().destination)
+            def actual = pom.dependencies.dependency.collect {
+                [it.groupId.text(), it.artifactId.text(), it.version.text(), it.scope.text()]
+            }.toSet()
+            def expected = configurations.api.dependencies
+                .withType(ExternalModuleDependency).collect {
+                    [it.group, it.name, it.version, 'compile']
+                }.toSet()
+            expected.addAll(configurations.implementation.dependencies
+                .withType(ExternalModuleDependency).collect {
+                    [it.group, it.name, it.version, 'runtime']
+                })
+            if (actual != expected) {
+                throw new GradleException("Published POM dependencies differ: expected ${expected}, got ${actual}")
+            }
+            if (pom.packaging.text() != 'aar') {
+                throw new GradleException('Published POM must declare aar packaging')
+            }
+            def aarArtifacts = publishing.publications.androidRelease.artifacts.findAll {
+                it.extension == 'aar' && !it.classifier
+            }
+            if (aarArtifacts.size() != 1) {
+                throw new GradleException('Release publication must contain exactly one unclassified AAR')
+            }
+        }
+    }
+    tasks.named('check') {
+        dependsOn verifyPublishedPom
+    }
 }

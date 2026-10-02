@@ -161,7 +161,8 @@ public class AndroidAssemblyUploadWorker extends Worker {
                 return handleFailure(e);
             }
 
-            if (config.shouldWaitForCompletion()) {
+            // A finished creation response does not start SSE or emit a completion callback.
+            if (config.shouldWaitForCompletion() && !initial.isFinished()) {
                 try {
                     boolean finished = completionLatch.await(config.getCompletionTimeoutMillis(), TimeUnit.MILLISECONDS);
                     if (!finished) {
@@ -180,6 +181,14 @@ public class AndroidAssemblyUploadWorker extends Worker {
 
             AssemblyResponse finalResponse = completionResponse.get() != null ? completionResponse.get() : initial;
             JSONObject json = finalResponse.json();
+            if (finalResponse.isFinished() && !finalResponse.isCompleted()) {
+                return Result.failure(new Data.Builder()
+                        .putString("error", json.optString("error", json.optString("ok", "Assembly did not complete")))
+                        .putString(OUTPUT_ASSEMBLY_ID, json.optString("assembly_id", null))
+                        .putString(OUTPUT_ASSEMBLY_URL, json.optString("assembly_url", null))
+                        .putString(OUTPUT_SSL_URL, json.optString("assembly_ssl_url", null))
+                        .build());
+            }
             Data output = new Data.Builder()
                     .putString(OUTPUT_ASSEMBLY_ID, finalResponse.getId())
                     .putString(OUTPUT_ASSEMBLY_URL, json.optString("assembly_url"))
